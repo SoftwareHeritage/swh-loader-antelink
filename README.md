@@ -71,3 +71,24 @@ threshold size.
 # Workflow overview
 
 ![Worflow overview](./docs/workflow.png)
+
+
+# db connection
+
+Ask admin for credential access.
+
+.pgpass:
+
+``` apacheconf
+****:****:antelink:guest:****
+```
+
+.pg_service.conf:
+
+``` apacheconf
+[antelink-swh]
+dbname=antelink
+host=****
+port=****
+user=guest
+```
