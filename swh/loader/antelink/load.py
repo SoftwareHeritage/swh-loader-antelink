@@ -24,24 +24,16 @@ def load_file(path):
                 yield sha1, pathname
 
 
-BUFFER_MAX = 10000
-
-
 def store_file_to_antelink_db(db, path):
     try:
         with db.transaction() as cur:
-            buffer_sha1_path = []
-            count = 0
-            for sha1, pathname in load_file(path):
-                buffer_sha1_path.append({'sha1': sha1, 'path': pathname})
-                count += 1
-                if count >= BUFFER_MAX:
-                    db.copy_to(buffer_sha1_path, 'content_s3', ['sha1', 'path'], cur)
-                    count = 0
-                    buffer_sha1_path = []
-        return True
-    except:
-        return False
+            buffer_sha1_path = ({'sha1': sha1, 'path': pathname} \
+                                for sha1, pathname in load_file(path))
+            db.copy_to(list(buffer_sha1_path), 'content_s3',
+                       ['sha1', 'path'], cur)
+        return True, None
+    except Exception as e:
+        return False, e
 
 
 def store_file_and_print_result(db, path):
@@ -49,11 +41,11 @@ def store_file_and_print_result(db, path):
     This prints ok or ko depending on the result.
 
     """
-    res = store_file_to_antelink_db(db, path)
+    res, e = store_file_to_antelink_db(db, path)
     if res:
         print('%s ok' % path)
     else:
-        print('%s ko' % path)
+        print('%s ko %s' % (path, e))
 
 
 def store_initial_round(dirpath):
@@ -62,9 +54,11 @@ def store_initial_round(dirpath):
 
     """
     db = Db.connect(DB_CONN)
-    for path in glob.glob(dirpath + '*.ls'):
+    paths = glob.glob(dirpath + '*.ls')
+    nb_paths = len(paths)
+    for path in paths:
         store_file_and_print_result(db, path)
-
+    print('Number of processed files: %s' % nb_paths)
 
 def store_second_round(path):
     """The first round finished, there were errors. Adapting the code and
@@ -75,8 +69,8 @@ def store_second_round(path):
     with open(path, 'r') as f:
         for line in f:
             line = line.rstrip('\n')
-            if line.endswith('ko'):
-                failed_filepath = line.split(' ')[0]
+            if ' ko ' in line:
+                failed_filepath = line.split(' ko ')[0]
                 store_file_and_print_result(db, failed_filepath)
 
 

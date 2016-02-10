@@ -66,7 +66,7 @@ Implementation detail change in storage:
 as content and content_missing will be created.  This table will be
 used to store content metadata when the size is larger than our actual
 threshold size.
-- The antelink content are to be injected as blob
+- The antelink contents are to be injected as blob
 
 # Workflow overview
 
@@ -92,3 +92,80 @@ host=****
 port=****
 user=guest
 ```
+
+
+# Injection of ls in content_s3
+
+- Name: xyz.ls with x,y,z in [1..f] (hex)
+- Number of files: 4096
+
+## round-1 through 6
+
+Multiple issues in data (some uncompressed and duplicated files) thus
+in the code, in environment (network failures -> code is run from my
+machine) was discovered and fixed.
+
+cf. stats/round-1 files (3% of files were rejected -> 123 files due to
+uncompressed files).
+
+Number of uncompressed files: 1 072 939 (without any .gz extension)
+``` shell
+# tony at corellia in ~/work/inria/repo/swh-environment/swh-loader-antelink on git:master x [10:41:13]
+$ cat stats/round-1 | cut -d' ' -f1 | xargs grep -v '.gz' | wc -l
+1072939
+```
+
+cf. stats/round-2 files containing all the failed files from round-1 reinjected.
+
+Total number of .gz files in those 4096 files: 271 042 276
+
+``` shell
+# tony at corellia in ~/work/inria/repo/swh-environment/swh-loader-antelink on git:master x [10:43:35]
+$ cat stats/round-1 | cut -d' ' -f1 | xargs cat | grep '.gz' | wc -l
+271042276
+```
+
+Total number of lines in content_s3 after round-2: 261 380 000
+
+``` sql
+antelink=> select count(*) from content_s3;
+   count
+-----------
+ 261380000
+(1 row)
+```
+
+Not every *.ls file were completely injected in db (bug in code).
+
+Total number of files in 4096 files (one row represents one file): 272 115 215
+
+``` shell
+# tony at corellia in ~/work/inria/repo/swh-environment/swh-loader-antelink on git:master x [10:47:45]
+$ cat stats/round-1 | cut -d' ' -f1 | xargs cat | wc -l
+272115215
+```
+
+This includes the uncompressed ones.
+
+Thus, total number of compressed ones: 271 042 276
+
+``` newlisp
+(- 272115215 1072939) ;; 271042276
+```
+
+## round-7 through 8
+
+Fixed multiple problem from previous iteration.
+
+All files in content_s3: 271 042 276
+
+Content in db:
+``` sql
+antelink=> select count(*) from content_s3;
+   count
+-----------
+ 271042276
+(1 row)
+```
+
+This match the number of compressed files in the 4096 files.
