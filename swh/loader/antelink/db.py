@@ -167,17 +167,9 @@ class Db:
 
         # yield from cursor_to_bytes(cur)
 
-        stub_hashes = [
-            ('fc3c6458419c1fb22c8fcef2d2ae3bf0e1ebdea0', 'some/path/fc3c6458419c1fb22c8fcef2d2ae3bf0e1ebdea0'),
-            ('fc3026857ebdd271217acfcf69fd0b2bf70220a9', 'some/path/fc3026857ebdd271217acfcf69fd0b2bf70220a9'),
-            ('fc368ed925b1e516c6e5f6643813889ad58a4266', 'some/path/fc368ed925b1e516c6e5f6643813889ad58a4266'),
-            ('fc318ef1e0bb0bc34b63cde9a166a88c05de3824', 'some/path/fc318ef1e0bb0bc34b63cde9a166a88c05de3824'),
-            ('fc34c73c362be46777e6be112441cf46bb48ef32', 'some/path/fc34c73c362be46777e6be112441cf46bb48ef32'),
-            ('fc3a704c75d8827580d2f74002e7bd7968da8707', 'some/path/fc3a704c75d8827580d2f74002e7bd7968da8707'),
-            ('fc3d37d01b5023fb2558523bf9ca8aac89e6ae95', 'some/path/fc3d37d01b5023fb2558523bf9ca8aac89e6ae95'),
-            ('fc3407f2a7b8881d2db2fdd113710740fa3d337a', 'some/path/fc3407f2a7b8881d2db2fdd113710740fa3d337a'),
-            ('fc3c86edbf7897fa7b654e5e3969e7cdb12921f5', 'some/path/fc3c86edbf7897fa7b654e5e3969e7cdb12921f5'),
-            ('fc3cb0d59c33c8a5557f3e711ede20c662a19574', 'some/path/fc3cb0d59c33c8a5557f3e711ede20c662a19574')]
-
-        for h in stub_hashes:
-            yield h
+        with open('export-content.csv') as f:
+            for line in f:
+                l = line.rstrip('\n').split('\t')
+                hash = bytes.fromhex(l[0].replace('\\\\x', ''))
+                path = l[1]
+                yield hash, path

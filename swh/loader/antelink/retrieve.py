@@ -8,8 +8,8 @@ import itertools
 from swh.storage import get_storage
 from swh.core import hashutil
 
+from swh.loader.antelink import sesi
 from swh.loader.antelink.db import Db
-
 
 DB_CONN = "service='antelink-swh'"
 
@@ -57,9 +57,31 @@ if __name__ == '__main__':
 
     group_contents = grouper(read_sha1(), NB_CONTENT_PER_BLOCK, fillvalue=None)
 
-    for group_content in group_contents:
-        contents_to_retrieve = storage.content_missing_per_sha1(
-            (hashutil.hex_to_hash(content['sha1'])
-             for content in group_content if content is not None))
+    contents = {}
+    contents_from_s3 = {}
+    contents_from_sesi = {}
 
-        print(contents_to_retrieve)
+    for group_content in group_contents:
+        # keep information about content
+        for content in group_content:
+            if content:
+                content['path'] = content['path'] + '.gz'  # hack: change the db's values
+                contents[content['sha1']] = content
+
+        # check the missing sha1s
+        sha1s_missing = storage.content_missing_per_sha1(
+            (content['sha1'] for content in group_content if content))
+
+        # check for those missing sha1s if they still exist on sesi
+        for sha1 in sha1s_missing:
+            c = contents[sha1]
+            r = sesi.check_file_exists(c['path'])
+            if r:
+                print('File %s exists.' % c['path'])
+                contents_from_sesi[c['sha1']] = c
+            else:
+                print('File %s does not exist.' % c['path'])
+                contents_from_s3[c['sha1']] = c
+
+    print('sesi: ', len(contents_from_sesi.keys()))
+    print('s3: ', len(contents_from_s3.keys()))
