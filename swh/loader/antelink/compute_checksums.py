@@ -77,24 +77,24 @@ def main():
             corrupted = True
 
         data.update({
-            'length': os.lstat(uncompress_path).st_size,
+            'length': str(os.lstat(uncompress_path).st_size),
             'path': path,
-            'corrupted': corrupted,
+            'corrupted': str(corrupted),
         })
 
         # clean up
         if os.path.isfile(uncompress_path):
             os.remove(uncompress_path)
 
-        print(data['sha1'],
-              data['sha1_git'],
-              data['sha256'],
-              data['length'],
-              data['path'],
-              data['corrupted'])
+        print(','.join([hashutil.hash_to_hex(data['sha1']),
+                        hashutil.hash_to_hex(data['sha1_git']),
+                        hashutil.hash_to_hex(data['sha256']),
+                        data['length'],
+                        data['path'],
+                        data['corrupted']]))
 
 if __name__ == '__main__':
-    log_file = './compute-checksums.log'
+    log_file = TMP_SAS + '/compute-checksums.log'
     logging.basicConfig(level=LOG_LEVEL,
                         handlers=[logging.FileHandler(log_file),
                                   logging.StreamHandler()])
