@@ -10,7 +10,7 @@ import gzip
 from swh.loader.antelink import hashutil
 
 dry_run = False
-LOG_LEVEL = logging.DEBUG  # logging.INFO
+LOG_LEVEL = logging.WARN  # logging.INFO
 
 SHA1_RE = re.compile(r'^[0-9a-fA-F]{40}$')
 TMP_SAS = '/antelink/store0/tmp-compute-checksums/'
