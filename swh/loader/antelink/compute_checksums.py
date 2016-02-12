@@ -72,7 +72,7 @@ def main():
 
         corrupted = False
         if sha1_filename != content_sha1:
-            logging.error('file %s is corrupted (content sha1: %s), skipping it'
+            logging.error('file %s is corrupted (content sha1: %s)'
                           % (path, content_sha1))
             corrupted = True
 
