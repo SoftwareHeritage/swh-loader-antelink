@@ -14,6 +14,7 @@ LOG_LEVEL = logging.WARN  # logging.INFO
 
 SHA1_RE = re.compile(r'^[0-9a-fA-F]{40}$')
 TMP_SAS = '/antelink/store0/tmp-compute-checksums/'
+MAX_SIZE =  200*1024*1024  # 200Mb
 
 
 def is_sha1(s):
@@ -47,7 +48,12 @@ def main():
             continue
 
         filesize = os.lstat(path).st_size
-        logging.info('gzipped (%s, %s) detected' % (path, filesize))
+        if filesize >= MAX_SIZE:
+            logging.warn('Big compressed file (%s, %s) detected'
+                         % (path, filesize))
+        else:
+            logging.info('gz file (%s, %s) detected'
+                         % (path, filesize))
 
         # decompress the file
         try:
