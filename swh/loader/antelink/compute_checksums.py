@@ -49,17 +49,19 @@ def main():
 
         filesize = os.lstat(path).st_size
         if filesize >= MAX_SIZE_TARBALL:
-            logging.warn('Big compressed file (%s, %s) detected'
+            logging.warn('Huge compressed file (%s, %s) detected... '
+                         'Skipping computation for now.'
                          % (path, filesize))
+            # print out the path without computations
+            print(','.join(['','','','',path,'']))
+            continue
         else:
-            logging.info('gz file (%s, %s) detected'
-                         % (path, filesize))
+            logging.info('File gz (%s, %s) detected' % (path, filesize))
 
-        # decompress the file
         try:
             data = compute_hash(path)
         except Exception as e:
-            logging.error('Problem during hash computation of (%s, %s)... %s'
+            logging.error('Problem during hash computation for (%s, %s)... %s'
                           % (path, filesize, e))
             continue
 
@@ -67,7 +69,7 @@ def main():
 
         corrupted = False
         if sha1_filename != content_sha1:
-            logging.error('file (%s, %s) is corrupted (content sha1: %s)'
+            logging.error('File gz (%s, %s) corrupted (content sha1: %s)'
                           % (path, filesize, content_sha1))
             corrupted = True
 
