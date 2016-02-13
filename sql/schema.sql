@@ -5,14 +5,6 @@
 -- scan of sesi-pv-lc2 data, antelink's backup fresh from 2 years
 alter table content rename to content_sesi;
 
--- scan of antelink's data from s3 (fresher than content_sesi)
-create table content_s3
-(
-  sha1 bytea primary key,
-  path text not null
-);
-
-
 -- a SHA1 checksum (not necessarily originating from Git)
 create domain sha1 as bytea check (length(value) = 20);
 
@@ -24,6 +16,14 @@ create domain sha256 as bytea check (length(value) = 32);
 
 create type content_status as enum ('absent', 'visible', 'hidden');
 
+-- scan of antelink's data from s3 (fresher than content_sesi)
+create table content_s3
+(
+    sha1 sha1 primary key,
+    path text not null
+);
+
+-- alter table content_s3 alter column sha1 set data type sha1;
 
 create table content_sesi_all
 (
@@ -34,3 +34,11 @@ create table content_sesi_all
     path text not null,
     corrupted boolean not null
 );
+
+-- Create content present on s3 and not on sesi (could be present in swh though)...
+create materialized view if not exists content_s3_not_in_sesi
+as select sha1, path
+   from content_s3 as s3
+   where not exists
+     (select 1 from content_sesi as sesi where s3.sha1 = sesi.sha1)
+with data;
