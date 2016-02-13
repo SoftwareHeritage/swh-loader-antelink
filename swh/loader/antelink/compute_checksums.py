@@ -14,7 +14,7 @@ LOG_LEVEL = logging.WARN  # logging.INFO
 
 SHA1_RE = re.compile(r'^[0-9a-fA-F]{40}$')
 TMP_SAS = '/antelink/store0/tmp-compute-checksums/'
-MAX_SIZE =  200*1024*1024  # 200Mb
+MAX_SIZE_TARBALL =  2*1024*1024*1024  # 2G tarball threshold
 
 
 def is_sha1(s):
@@ -48,7 +48,7 @@ def main():
             continue
 
         filesize = os.lstat(path).st_size
-        if filesize >= MAX_SIZE:
+        if filesize >= MAX_SIZE_TARBALL:
             logging.warn('Big compressed file (%s, %s) detected'
                          % (path, filesize))
         else:
