@@ -119,7 +119,10 @@ def hashdata(data, algorithms=ALGORITHMS):
 
     """
     buf = BytesIO(data)
-    return _hash_file_obj(buf, len(data), algorithms)
+    l = len(data)
+    out = _hash_file_obj(buf, l, algorithms)
+    out['length'] = l
+    return out
 
 
 def hash_git_object(git_object, git_type, hash_algo='sha1'):

@@ -20,22 +20,9 @@ def is_sha1(s):
     return bool(re.match(SHA1_RE, s))
 
 
-def gunzip(path):
-    """Uncompress a path leading to a compressed file.
-       Expects a path ending in .gz.
-
-    Returns:
-        The path stripped of the .gz if all went well.
-
-    Raises:
-        Exception if problem during uncompressing time.
-
-    """
-    newpath = os.path.join(TMP_SAS, os.path.basename(path).rstrip('.gz'))
+def compute_hash(path):
     with gzip.open(path, 'rb') as inp:
-        with open(newpath, 'wb') as out:
-            out.write(inp.read())
-    return newpath
+        return hashutil.hashdata(inp.read())
 
 
 def main():
@@ -59,32 +46,30 @@ def main():
             logging.warn('dry run, do nothing...')
             continue
 
-        logging.info('gzipped %s detected.' % path)
+        filesize = os.lstat(path).st_size
+        logging.info('gzipped (%s, %s) detected' % (path, filesize))
 
         # decompress the file
         try:
-            uncompress_path = gunzip(path)
+            data = compute_hash(path)
         except Exception as e:
-            logging.error('Problem during uncompression... %s' % e)
+            logging.error('Problem during hash computation of (%s, %s)... %s'
+                          % (path, filesize, e))
             continue
-        data = hashutil.hashfile(uncompress_path)
+
         content_sha1 = hashutil.hash_to_hex(data['sha1'])
 
         corrupted = False
         if sha1_filename != content_sha1:
-            logging.error('file %s is corrupted (content sha1: %s)'
-                          % (path, content_sha1))
+            logging.error('file (%s, %s) is corrupted (content sha1: %s)'
+                          % (path, filesize, content_sha1))
             corrupted = True
 
         data.update({
-            'length': str(os.lstat(uncompress_path).st_size),
             'path': path,
+            'length': str(data['length']),
             'corrupted': str(corrupted),
         })
-
-        # clean up
-        if os.path.isfile(uncompress_path):
-            os.remove(uncompress_path)
 
         print(','.join([hashutil.hash_to_hex(data['sha1']),
                         hashutil.hash_to_hex(data['sha1_git']),
