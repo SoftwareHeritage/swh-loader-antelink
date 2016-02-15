@@ -159,7 +159,7 @@ class Db:
             self._cursor(cur).copy_expert('COPY %s (%s) FROM STDIN CSV' % (
                 tblname, ', '.join(columns)), f)
 
-    def read_sha1(self, cur):
+    def read_sha1(self, cur=None):
         cur = self._cursor(cur)
 
         # cur.execute("""select sha1, path from content
@@ -173,3 +173,10 @@ class Db:
                 hash = bytes.fromhex(l[0].replace('\\\\x', ''))
                 path = l[1]
                 yield hash, path
+
+    def read_content_s3_not_in_sesi(self, cur=None):
+        cur = self._cursor(cur)
+
+        cur.execute('SELECT path FROM content_s3_not_in_sesi LIMIT 3');
+
+        yield from cursor_to_bytes(cur)
