@@ -17,10 +17,11 @@ create domain sha256 as bytea check (length(value) = 32);
 create type content_status as enum ('absent', 'visible', 'hidden');
 
 -- scan of antelink's data from s3 (fresher than content_sesi)
-create table content_s3
+create table content_s3_2
 (
     sha1 sha1 primary key,
-    path text not null
+    path text not null,
+    size bigint not null
 );
 
 -- alter table content_s3 alter column sha1 set data type sha1;

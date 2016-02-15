@@ -18,19 +18,21 @@ def load_file(path):
     with open(path, 'r') as f:
         for line in f:
             data = line.rstrip('\n').split(' ')
-            pathname = data[len(data) - 1]
+            l = len(data)
+            pathname = data[l - 1]
+            size = data[l - 2]
             if pathname.endswith('.gz'):
                 sha1 = bytes.fromhex(os.path.basename(pathname).split('.')[0])
-                yield sha1, pathname
+                yield {'sha1': sha1,
+                       'path': pathname,
+                       'size': size}
 
 
 def store_file_to_antelink_db(db, path):
     try:
         with db.transaction() as cur:
-            buffer_sha1_path = ({'sha1': sha1, 'path': pathname} \
-                                for sha1, pathname in load_file(path))
-            db.copy_to(list(buffer_sha1_path), 'content_s3',
-                       ['sha1', 'path'], cur)
+            db.copy_to(list(load_file(path)), 'content_s3_2',
+                       ['sha1', 'path', 'size'], cur)
         return True, None
     except Exception as e:
         return False, e
