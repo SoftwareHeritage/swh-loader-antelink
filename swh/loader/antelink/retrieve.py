@@ -6,7 +6,6 @@
 import itertools
 
 from swh.storage import get_storage
-from swh.core import hashutil
 
 from swh.loader.antelink import sesi
 from swh.loader.antelink.db import Db
