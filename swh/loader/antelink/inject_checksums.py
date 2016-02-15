@@ -3,8 +3,14 @@
 # License: GNU Affero General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+"""Module in charge of loading the data retrieved from sesi's backup.
+The module swh.loader.antelink.compute_checksums will output the data
+needed in csv.  This one will parse and load the data in db
+antelink.content_sesi_all.
+
+"""
+
 import os
-import glob
 import sys
 
 from swh.loader.antelink.db import Db

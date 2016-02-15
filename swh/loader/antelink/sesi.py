@@ -3,6 +3,8 @@
 # License: GNU Affero General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+"""Tryout module to check existence of file in s3 using ssh."""
+
 import subprocess
 
 

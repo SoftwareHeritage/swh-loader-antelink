@@ -3,6 +3,9 @@
 # License: GNU Affero General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+"""Tryout module to filter data already present in swh storage."""
+
+
 import itertools
 
 from swh.storage import get_storage

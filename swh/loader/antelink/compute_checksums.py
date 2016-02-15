@@ -1,5 +1,16 @@
 #!/usr/bin/python3
 
+"""Module in charge of computing metadata from sesi's antelink backup.
+This outputs the results as csv content with:
+sha1,sha1_git,sha256,length,path,corrupted
+
+Note:
+- The path is the one from sesi.
+- sesi machine has no access to swh's network that's why we output as
+  files first
+
+"""
+
 import logging
 import os
 import re

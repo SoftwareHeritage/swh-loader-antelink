@@ -3,6 +3,10 @@
 # License: GNU Affero General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+"""Module in charge of loading the 'aws s3 ls' data output in
+antelink.content_s3 table."""
+
+
 import os
 import glob
 import sys
