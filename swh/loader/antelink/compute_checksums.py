@@ -24,7 +24,6 @@ dry_run = False
 LOG_LEVEL = logging.WARN  # logging.INFO
 
 SHA1_RE = re.compile(r'^[0-9a-fA-F]{40}$')
-TMP_SAS = '/antelink/store0/tmp-compute-checksums/'
 MAX_SIZE_TARBALL =  2*1024*1024*1024  # 2G tarball threshold
 
 
@@ -98,8 +97,8 @@ def main():
                         data['corrupted']]))
 
 if __name__ == '__main__':
-    log_file = TMP_SAS + '/compute-checksums.log'
+    process_log_file = sys.argv[1]
     logging.basicConfig(level=LOG_LEVEL,
-                        handlers=[logging.FileHandler(log_file),
+                        handlers=[logging.FileHandler(process_log_file),
                                   logging.StreamHandler()])
     main()
