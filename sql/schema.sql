@@ -21,7 +21,7 @@ create table content_s3_2
 (
     sha1 bytea primary key,
     path text not null,
-    size bigint not null
+    length bigint not null
 );
 
 -- alter table content_s3 alter column sha1 set data type sha1;

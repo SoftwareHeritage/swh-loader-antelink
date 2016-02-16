@@ -10,10 +10,11 @@ antelink.content_s3 table."""
 import os
 import sys
 
+from swh.loader.antelink import utils
 from swh.loader.antelink.db import Db
 
 
-def load_file(path):
+def load_data(path):
     """Load file and yield sha1, pathname couple."""
     with open(path, 'r') as f:
         for line in f:
@@ -22,16 +23,19 @@ def load_file(path):
             pathname = data[l - 1]
             if pathname.endswith('.gz'):
                 sha1 = bytes.fromhex(os.path.basename(pathname).split('.')[0])
-                size = data[l - 2]
+                length = data[l - 2]
                 yield {'sha1': sha1,
                        'path': pathname,
-                       'size': size}
+                       'length': length}
 
 
 def store_file_to_antelink_db(db, path):
     with db.transaction() as cur:
-        db.copy_to(list(load_file(path)), 'content_s3_2',
-                   ['sha1', 'path', 'size'], cur)
+        # group data per 50000-sized data block
+        splitdata = utils.grouper(load_data(path), 50000, fillvalue=None)
+        for data in splitdata:
+            db.copy_to((d for d in data if d), 'content_s3_2',
+                       ['sha1', 'path', 'length'], cur)
 
 
 def store_file_and_print_result(db, path):
