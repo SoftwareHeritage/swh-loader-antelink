@@ -14,6 +14,9 @@ from swh.loader.antelink import utils
 from swh.loader.antelink.db import Db
 
 
+BLOCK_SIZE = 75000
+
+
 def load_data(path):
     """Load file and yield sha1, pathname couple."""
     with open(path, 'r') as f:
@@ -31,9 +34,9 @@ def load_data(path):
 
 def store_file_to_antelink_db(db, path):
     with db.transaction() as cur:
-        # group data per 50000-sized data block
-        splitdata = utils.grouper(load_data(path), 50000, fillvalue=None)
-        for data in splitdata:
+        # group data per block of BLOCK_SIZE
+        splitdata = utils.grouper(load_data(path), BLOCK_SIZE, fillvalue=None)
+        for data in reversed(list(splitdata)):
             db.copy_to((d for d in data if d), 'content_s3_2',
                        ['sha1', 'path', 'length'], cur)
 
@@ -53,8 +56,8 @@ def store_file_and_print_result(db, path):
 if __name__ == '__main__':
     db_url = "%s" % sys.argv[1]
 
-    db = Db.connect(db_url)
     for line in sys.stdin:
+        db = Db.connect(db_url)
         filepath = line.rstrip()
 
         if not os.path.exists(filepath):
