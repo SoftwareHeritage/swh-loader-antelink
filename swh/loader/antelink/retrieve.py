@@ -10,28 +10,12 @@ import itertools
 
 from swh.storage import get_storage
 
-from swh.loader.antelink import sesi
+from swh.loader.antelink import sesi, utils
 from swh.loader.antelink.db import Db
 
 DB_CONN = "service='antelink-swh'"
 
 NB_CONTENT_PER_BLOCK = 100000
-
-
-def grouper(iterable, n, fillvalue=None):
-    """Collect data into fixed-length chunks or blocks.
-
-    Args:
-        iterable: an iterable
-        n: size of block
-        fillvalue: value to use for the last block
-
-    Returns:
-        fixed-length chunks of blocks as iterables
-
-    """
-    args = [iter(iterable)] * n
-    return itertools.zip_longest(*args, fillvalue=fillvalue)
 
 
 def read_sha1():
@@ -57,7 +41,7 @@ if __name__ == '__main__':
 
     storage = get_storage(conf['storage_class'], conf['storage_args'])
 
-    group_contents = grouper(read_sha1(), NB_CONTENT_PER_BLOCK, fillvalue=None)
+    group_contents = utils.grouper(read_sha1(), NB_CONTENT_PER_BLOCK, fillvalue=None)
 
     contents = {}
     contents_from_s3 = {}
