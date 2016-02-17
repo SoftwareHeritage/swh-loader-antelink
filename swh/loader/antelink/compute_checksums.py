@@ -31,13 +31,49 @@ def is_sha1(s):
     return bool(re.match(SHA1_RE, s))
 
 
+def compute_len(f):
+    """Compute the file-like object's size.
+
+    """
+    total = 0
+    while True:
+        chunk = f.read(hashutil.HASH_BLOCK_SIZE)
+        if not chunk:
+            break
+        total += len(chunk)
+    return total
+
+
 def compute_hash(path):
-    with gzip.open(path, 'rb') as inp:
-        return hashutil.hashdata(inp.read())
+    """Compute the gzip file's hashes and length.
+
+    """
+    with gzip.open(path, 'rb') as f:
+        l = compute_len(f)
+        f.seek(0)
+        data = hashutil.hashfile(f, length=l)
+        data['length'] = l
+        return data
 
 
 def main():
-    """Expects filepath to be piped in."""
+    """Expects filepaths to be piped in.
+    The filepath is then:
+    - check for being named <sha1>.gz (if not skipped)
+    - check for existence (if not skipped)
+    - check for filesize threshold (if too much, logged and
+      computations are skipped for now)
+    - hash computation on the uncompressed file and length
+
+    The output is as follows:
+    sha1,sha1_git,sha256,length,path,corrupted
+
+    for huge file or hash computation pb file, the output is as follows:
+    ,,,,path,
+
+    (The computation will have to be replayed later)
+
+    """
     for line in sys.stdin:
         path = line.rstrip()
         logging.debug('Treating file %s' % path)
@@ -73,6 +109,7 @@ def main():
         except Exception as e:
             logging.error('Problem during hash computation for (%s, %s)... %s'
                           % (path, filesize, e))
+            print(','.join(['','','','',path,'']))
             continue
 
         content_sha1 = hashutil.hash_to_hex(data['sha1'])
