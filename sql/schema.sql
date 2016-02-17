@@ -17,7 +17,7 @@ create domain sha256 as bytea check (length(value) = 32);
 create type content_status as enum ('absent', 'visible', 'hidden');
 
 -- scan of antelink's data from s3 (fresher than content_sesi)
-create table content_s3_2
+create table content_s3
 (
     sha1 sha1 primary key,
     path text not null,
@@ -36,10 +36,13 @@ create table content_sesi_all
     corrupted boolean not null
 );
 
--- Create content present on s3 and not on sesi (could be present in swh though)...
-create materialized view if not exists content_s3_not_in_sesi
+-- Create content present on s3 and not on sesi (could be present in
+-- swh though)...
+create materialized view content_s3_not_in_sesi
 as select sha1, path
-   from content_s3 as s3
-   where not exists
-     (select 1 from content_sesi as sesi where s3.sha1 = sesi.sha1)
-with data;
+    from content_s3 as s3
+    where not exists
+      (select 1 from content_sesi as sesi where s3.sha1 = sesi.sha1);
+
+-- after copy from swh the content table
+-- create unique index on content(sha1_git);
