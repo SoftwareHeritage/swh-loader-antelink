@@ -19,7 +19,7 @@ create type content_status as enum ('absent', 'visible', 'hidden');
 -- scan of antelink's data from s3 (fresher than content_sesi)
 create table content_s3_2
 (
-    sha1 bytea primary key,
+    sha1 sha1 primary key,
     path text not null,
     length bigint not null
 );

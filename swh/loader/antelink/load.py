@@ -14,7 +14,7 @@ from swh.loader.antelink import utils
 from swh.loader.antelink.db import Db
 
 
-BLOCK_SIZE = 75000
+BLOCK_SIZE = None  # 75000
 
 
 def load_data(path):
@@ -32,7 +32,7 @@ def load_data(path):
                        'length': length}
 
 
-def store_file_to_antelink_db(db, path):
+def store_file_to_antelink_db_per_block(db, path):
     with db.transaction() as cur:
         # group data per block of BLOCK_SIZE
         splitdata = utils.grouper(load_data(path), BLOCK_SIZE, fillvalue=None)
@@ -41,13 +41,22 @@ def store_file_to_antelink_db(db, path):
                        ['sha1', 'path', 'length'], cur)
 
 
+def store_file_to_antelink_db(db, path):
+    with db.transaction() as cur:
+        db.copy_to(load_data(path), 'content_s3_3',
+                   ['sha1', 'path', 'length'], cur)
+
+
 def store_file_and_print_result(db, path):
     """Try and store the file in the db connection.
     This prints ok or ko depending on the result.
 
     """
     try:
-        store_file_to_antelink_db(db, path)
+        if BLOCK_SIZE:
+            store_file_to_antelink_db_per_block(db, path)
+        else:
+            store_file_to_antelink_db(db, path)
         print('%s ok' % path)
     except Exception as e:
         print('%s ko %s' % (path, e))
