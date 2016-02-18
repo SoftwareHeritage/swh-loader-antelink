@@ -1,0 +1,71 @@
+#+title: Analysis about antepedia content
+
+All those numbers are actually reproducible through the antelink db.
+
+NB: Those numbers do not account for the corrupted data on sesi yet.
+The computation of checksums for those contents (including corruption flag - mismatch
+between sha1 name and actual sha1) is in progress on sesi.
+
+* Nomenclatura
+
+- content: swh's content table (duplicated from ours in softwareheritage db)
+- content_sesi: a scan of sesi's antelink backup (exactly 314899904
+- contents which is more than reality now ~> 280M)
+- content_s3: `aws s3 ls` from antepedia's s3 bucket (exact listing of antepedia's s3 contents)
+- content_s3_not_in_sesi: {s3} \ {sesi}
+- content_s3_not_in_sesi_nor_swh: ({s3} \ {sesi}) \ {swh}
+
+* Antelink content in s3 and not in sesi
+
+{s3} \ {sesi}:
+#+begin_src sql
+antelink=# create materialized view content_s3_not_in_sesi
+as select sha1, path
+    from content_s3 as s3
+    where not exists
+      (select 1 from content_sesi as sesi where s3.sha1 = sesi.sha1);
+
+SELECT 741797
+#+end_src
+
+Thus in compressed size (unit is bytes):
+#+begin_src sql
+antelink=# select sum(s3.length)
+from content_s3_not_in_sesi s3notsesi
+inner join content_s3 s3 on s3.sha1=s3notsesi.sha1;
+    sum
+------------
+ 3543013165
+(1 row)
+#+end_src
+
+so ~3G.
+
+* Antelink contents only in s3 and not in swh nor sesi
+
+({s3} \ {sesi}) \ {swh}:
+#+begin_src sql
+antelink=# create materialized view content_s3_not_in_sesi_nor_in_swh
+           as select sha1, path
+           from content_s3_not_in_sesi as s3
+           where not exists
+           (select 1 from content as swh where s3.sha1 = swh.sha1);
+SELECT 46
+#+end_src
+
+So apparently, the data that needs retrieval is already on sesi.
+
+* Antelink contents in sesi but not in swh
+
+
+{sesi} \ {swh}:
+#+begin_src sql
+antelink=# create materialized view content_sesi_not_in_swh
+           as select sha1
+           from content_sesi as sesi
+           where not exists
+           (select 1 from content as swh where sesi.sha1 = swh.sha1);
+SELECT 207095510
+#+end_src
+
+Indeed!
