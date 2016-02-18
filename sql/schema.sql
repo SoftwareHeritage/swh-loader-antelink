@@ -44,5 +44,17 @@ as select sha1, path
     where not exists
       (select 1 from content_sesi as sesi where s3.sha1 = sesi.sha1);
 
+create materialized view content_s3_not_in_sesi_nor_in_swh
+as select sha1, path
+from content_s3_not_in_sesi as s3
+where not exists
+(select 1 from content as swh where s3.sha1 = swh.sha1);
+
 -- after copy from swh the content table
 -- create unique index on content(sha1_git);
+
+create materialized view content_sesi_not_in_swh
+as select sha1
+from content_sesi as sesi
+where not exists
+(select 1 from content as swh where sesi.sha1 = swh.sha1);
