@@ -80,7 +80,7 @@ do
     cat $in | PYTHONPATH=/home/andumont/swh-loader-antelink python3 -m swh.loader.antelink.compute_checksums $logfile > $out
 done
 
-# store6
+# store6 (running)
 for file in store6.01 store6.02 store6.03 store6.04 store6.05 store6.06 store6.07 store6.08 store6.09 store6.10 store6.11 store6.12 store6.13 store6.14 store6.15 store6.16 store6.17 store6.18 store6.19 store6.20 store6.21 store6.22 store6.23 store6.24 store6.25 store6.26 store6.27 store6.28 store6.29 store6.30 store6.31 store6.32 store6.33;
 do
     in=/antelink/store0/tmp-compute-checksums/store6/file-$file.csv
@@ -89,7 +89,7 @@ do
     cat $in | PYTHONPATH=/home/andumont/swh-loader-antelink python3 -m swh.loader.antelink.compute_checksums $logfile > $out
 done
 
-# store7
+# store7 (running)
 for file in store7.01 store7.02 store7.03 store7.04 store7.05 store7.06 store7.07 store7.08 store7.09 store7.10 store7.11 store7.12 store7.13 store7.14 store7.15 store7.16 store7.17 store7.18 store7.19 store7.20 store7.21 store7.22 store7.23 store7.24 store7.25 store7.26 store7.27 store7.28 store7.29 store7.30 store7.31 store7.32 store7.33;
 do
     in=/antelink/store0/tmp-compute-checksums/store7/file-$file.csv
@@ -98,7 +98,7 @@ do
     cat $in | PYTHONPATH=/home/andumont/swh-loader-antelink python3 -m swh.loader.antelink.compute_checksums $logfile > $out
 done
 
-# store8
+# store8 (running)
 for file in store8.01 store8.02 store8.03 store8.04 store8.05 store8.06 store8.07 store8.08 store8.09 store8.10 store8.11 store8.12 store8.13 store8.14 store8.15 store8.16 store8.17 store8.18 store8.19 store8.20 store8.21 store8.22 store8.23 store8.24 store8.25 store8.26 store8.27 store8.28 store8.29 store8.30 store8.31 store8.32 store8.33;
 do
     in=/antelink/store0/tmp-compute-checksums/store8/file-$file.csv
