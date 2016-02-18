@@ -177,6 +177,7 @@ class Db:
     def read_content_s3_not_in_sesi(self, cur=None):
         cur = self._cursor(cur)
 
-        cur.execute('SELECT path FROM content_s3_not_in_sesi LIMIT 3');
+        # cur.execute('SELECT path FROM content_s3_not_in_sesi');
+        cur.execute('SELECT path FROM content_s3_not_in_sesi LIMIT 1');
 
         yield from cursor_to_bytes(cur)
