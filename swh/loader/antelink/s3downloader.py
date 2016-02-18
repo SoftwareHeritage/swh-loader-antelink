@@ -60,3 +60,5 @@ class AntelinkS3Downloader(config.SWHConfig):
             os.makedirs(parent_path, exist_ok=True)
 
             download_s3_file(s3path, full_dest_path)
+
+        # todo, inject in swh
