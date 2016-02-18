@@ -16,9 +16,7 @@ import os
 import re
 import sys
 
-import gzip
-
-from swh.loader.antelink import hashutil
+from swh.loader.antelink import hashutil, utils
 
 dry_run = False
 LOG_LEVEL = logging.WARN  # logging.INFO
@@ -29,31 +27,6 @@ MAX_SIZE_TARBALL =  2*1024*1024*1024  # 2G tarball threshold
 
 def is_sha1(s):
     return bool(re.match(SHA1_RE, s))
-
-
-def compute_len(f):
-    """Compute the file-like object's size.
-
-    """
-    total = 0
-    while True:
-        chunk = f.read(hashutil.HASH_BLOCK_SIZE)
-        if not chunk:
-            break
-        total += len(chunk)
-    return total
-
-
-def compute_hash(path):
-    """Compute the gzip file's hashes and length.
-
-    """
-    with gzip.open(path, 'rb') as f:
-        l = compute_len(f)
-        f.seek(0)
-        data = hashutil.hashfile(f, length=l)
-        data['length'] = l
-        return data
 
 
 def main():
@@ -105,7 +78,7 @@ def main():
             logging.info('File gz (%s, %s) detected' % (path, filesize))
 
         try:
-            data = compute_hash(path)
+            data = utils.compute_hash(path)
         except Exception as e:
             logging.error('Problem during hash computation for (%s, %s)... %s'
                           % (path, filesize, e))

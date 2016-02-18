@@ -8,9 +8,10 @@ import logging
 import os
 import subprocess
 
-
 from swh.core import config
+from swh.storage import get_storage
 
+from swh.loader.antelink import utils
 
 DRY_RUN = True
 
@@ -26,6 +27,8 @@ class AntelinkS3Downloader(config.SWHConfig):
 
     """
     DEFAULT_CONFIG = {
+        'storage_class': ('str', 'remote_storage'),
+        'storage_args': ('list[str]', ['http://localhost:5000/']),
         'db_url': ('string', 'service=antelink-swh'),
         'bucket': ('string', 's3://antelink-object-storage'),
         'destination_path': ('string', '/home/storage/antelink/s3/')
@@ -34,8 +37,6 @@ class AntelinkS3Downloader(config.SWHConfig):
     def __init__(self, config):
         self.config = config
 
-        print(self.config)
-
         dest_path = self.config['destination_path']
         if not dest_path.endswith('/'):
             self.config['destination_path'] = dest_path + '/'
@@ -43,6 +44,9 @@ class AntelinkS3Downloader(config.SWHConfig):
         s3path = self.config['bucket']
         if not s3path.endswith('/'):
             self.config['bucket'] = s3path + '/'
+
+        self.storage = get_storage(config['storage_class'],
+                                   config['storage_args'])
 
         self.log = logging.getLogger(
             'swh.antelink.loader.AntelinkS3Downloader')
@@ -62,3 +66,12 @@ class AntelinkS3Downloader(config.SWHConfig):
             download_s3_file(s3path, full_dest_path)
 
         # todo, inject in swh
+        hashdata = utils.compute_hash(full_dest_path)
+
+        try:
+            self.storage.content_add([hashdata])
+        except Exception as e:
+            print(e)
+        finally:
+            if os.path.exists(full_dest_path):
+                os.delete(full_dest_path)
