@@ -41,7 +41,23 @@ def compute_len(f):
     return total
 
 
-def compute_hash(path):
+def compute_data(f):
+    """Compute file-like f object's size.
+
+    Returns:
+        Length of the file-like f object.
+
+    """
+    data = b''
+    while True:
+        chunk = f.read(hashutil.HASH_BLOCK_SIZE)
+        if not chunk:
+            break
+        data += chunk
+    return data
+
+
+def compute_hash(path, with_data=False):
     """Compute the gzip file's hashes and length.
 
     Args:
@@ -51,9 +67,19 @@ def compute_hash(path):
         dictionary of sha1, sha1_git, sha256 and length.
 
     """
+    data = {}
     with gzip.open(path, 'rb') as f:
-        l = compute_len(f)
+        if with_data:
+            raw = compute_data(f)
+            data['data'] = raw
+            l = len(raw)
+        else:
+            l = compute_len(f)
+
         f.seek(0)
-        data = hashutil.hashfile(f, length=l)
-        data['length'] = l
-        return data
+        hashes = hashutil.hashfile(f, length=l)
+        hashes.update({
+            'length': l,
+            'data': data.get('data')
+        })
+        return hashes
