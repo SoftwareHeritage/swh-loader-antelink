@@ -17,8 +17,13 @@ The data are stored in table content_sesi_all.
 import os
 import sys
 
-from swh.loader.antelink.db import Db
 from swh.core import hashutil
+
+from swh.loader.antelink import utils
+from swh.loader.antelink.db import Db
+
+
+BLOCK_SIZE = 100000
 
 
 def load_file(path):
@@ -37,7 +42,7 @@ def load_file(path):
                        'path': path,
                        'corrupted': data[5]}
             else:
-                print('%s skipped.' % path)
+                print('Path %s skipped.' % path)
 
 
 def store_file_content(db_url, path):
@@ -47,17 +52,28 @@ def store_file_content(db_url, path):
     """
     db = Db.connect(db_url)
     with db.transaction() as cur:
-        db.copy_to(load_file(path), 'content_sesi_all',
-                   ['sha1', 'sha1_git', 'sha256', 'length',
-                    'path', 'corrupted'], cur)
+        for data in utils.split_data(load_file(path), BLOCK_SIZE):
+            db.copy_to(data, 'content_sesi_all',
+                       ['sha1', 'sha1_git', 'sha256', 'length',
+                        'path', 'corrupted'], cur)
+
 
 if __name__ == '__main__':
     db_url = "%s" % sys.argv[1]
 
     for filepath in sys.stdin:
+        filepath = filepath.rstrip()
+
         if not os.path.exists(filepath):
             print('Path %s does not exist.' % filepath)
             continue
 
-        if os.path.isfile(filepath):
+        if not os.path.isfile(filepath):
+            print('Path %s does not reference a file.' % filepath)
+            continue
+
+        try:
             store_file_content(db_url, filepath)
+            print('%s ok' % filepath)
+        except Exception as e:
+            print('%s ko %s' % (filepath, e))

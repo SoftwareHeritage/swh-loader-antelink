@@ -34,10 +34,8 @@ def load_data(path):
 
 def store_file_to_antelink_db_per_block(db, path):
     with db.transaction() as cur:
-        # group data per block of BLOCK_SIZE
-        splitdata = utils.grouper(load_data(path), BLOCK_SIZE, fillvalue=None)
-        for data in reversed(list(splitdata)):
-            db.copy_to((d for d in data if d), 'content_s3',
+        for data in utils.split_data(load_data(path), BLOCK_SIZE):
+            db.copy_to(data, 'content_s3',
                        ['sha1', 'path', 'length'], cur)
 
 

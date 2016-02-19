@@ -83,3 +83,16 @@ def compute_hash(path, with_data=False):
             'data': data.get('data')
         })
         return hashes
+
+
+def split_data(data, block_size):
+    """Split the data of the generator of block with a given size.
+    The last block may be inferior of block_size.
+
+    Args:
+        data: generator of data to slice in blocks of size block-size
+        block_size: size block to use
+    """
+    splitdata = grouper(data, block_size, fillvalue=None)
+    for _data in splitdata:
+        yield (d for d in _data if d)
