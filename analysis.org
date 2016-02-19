@@ -1,4 +1,4 @@
-#+title: Analysis about antepedia content
+#+title: Analysis about Antepedia contents
 
 All those numbers are actually reproducible through the antelink db.
 
@@ -69,3 +69,107 @@ SELECT 207095510
 #+end_src
 
 Indeed!
+
+* Missed backup-ed contents since disks crash
+
+Table `content_sesi` contains contents from zack's scan and
+compression routine.
+
+Since then, inria admins mistakenly removed our hard disk bay (/antelink/store0 mount point).
+So we miss 25 419 313 contents.
+
+** Demonstration
+
+Each of the following files contains on each line one filepath in the
+corresponding store (/antelink/store{10,11,12,13,14,15,16,4,5,6,7,8,9}):
+#+begin_src txt
+   32269834 /antelink/store0/tmp-compute-checksums/file-store10.csv
+    6353200 /antelink/store0/tmp-compute-checksums/file-store11.csv
+    6356584 /antelink/store0/tmp-compute-checksums/file-store12.csv
+    6192914 /antelink/store0/tmp-compute-checksums/file-store13.csv
+   32262055 /antelink/store0/tmp-compute-checksums/file-store14.csv
+   32268595 /antelink/store0/tmp-compute-checksums/file-store15.csv
+    6352648 /antelink/store0/tmp-compute-checksums/file-store16.csv
+   32236548 /antelink/store0/tmp-compute-checksums/file-store4.csv
+   32246790 /antelink/store0/tmp-compute-checksums/file-store5.csv
+   32230119 /antelink/store0/tmp-compute-checksums/file-store6.csv
+   32264976 /antelink/store0/tmp-compute-checksums/file-store7.csv
+   32249986 /antelink/store0/tmp-compute-checksums/file-store8.csv
+    6196342 /antelink/store0/tmp-compute-checksums/file-store9.csv
+  289480591 total
+#+end_src
+
+#+begin_src elisp
+(- 314899904 289480591) ;; 25 419 313
+#+end_src
+
+* Hash computation running on sesi:
+
+|---------+-----------+-----------+-----------+-----------+-------------|
+| Store   |  Expected |    Actual |   Remains |      Done | Description |
+|---------+-----------+-----------+-----------+-----------+-------------|
+| store10 |  32269834 |  30889295 |   1380539 | 95.721890 |             |
+| store11 |   6353200 |   6353199 |         1 | 99.999984 | Miss 1      |
+| store12 |   6356584 |   3889132 |   2467452 | 61.182736 |             |
+| store13 |   6192914 |   3744802 |   2448112 | 60.469143 |             |
+| store14 |  32262055 |  32262054 |         1 | 99.999997 | Miss 1      |
+| store15 |  32268595 |  32268595 |         0 |       100 |             |
+| store16 |   6352648 |   6352645 |         3 | 99.999953 | Miss 3      |
+| store4  |  32236548 |  10802419 |  21434129 | 33.509850 |             |
+| store5  |  32246790 |   7979320 |  24267470 | 24.744540 |             |
+| store6  |  32230119 |   3672265 |  28557854 | 11.393892 |             |
+| store7  |  32264976 |   4242674 |  28022302 | 13.149472 |             |
+| store8  |  32249986 |   4157576 |  28092410 | 12.891714 |             |
+| store9  |   6196342 |   2007104 |   4189238 | 32.391756 |             |
+|---------+-----------+-----------+-----------+-----------+-------------|
+| total   | 289480591 | 148621080 | 140859511 | 51.340603 |             |
+|---------+-----------+-----------+-----------+-----------+-------------|
+#+TBLFM: $4=$2-$3::@15$2=vsum(@2$2..@14$2)::@15$3=vsum(@2$3..@14$3)::$5=100*$3/$2
+
+The missing part must be an offset introduced after:
+- one error that happened during hash computation (the content is then skipped without being written... fixed now)
+- the main process stopped
+- the resumption is taken using the number of lines being processed
+
+Note: There remains:
+- offset to consider
+- huge file to deal with (~100)
+- some files were issued problems when computation hash (2 for the moment)
+
+** Estimated average speed
+
+As of:
+- Thu Feb 18 18:41:59 CET 2016, 126260951 hash computations done
+- Fri Feb 19 09:44:29 CET 2016, 147911166 hash computations done
+
+#+begin_src elisp
+(require 'dash)
+(require 'parse-time)
+
+(defun swh-worker-to-time (str-date)
+  "STR-DATE is a parseable string date.
+Compute the time."
+  (->> str-date
+       parse-time-string
+       (apply 'encode-time)))
+
+(defun swh-worker-time-in-seconds-between (str-date1 str-date0)
+  "Compute the seconds between STR-DATE1 and STR-DATE0.
+They are both string parseable date time."
+  (let ((t1 (swh-worker-to-time str-date1))
+        (t0 (swh-worker-to-time str-date0)))
+    (time-to-seconds (time-subtract t1 t0))))
+
+(let ((seconds (swh-worker-time-in-seconds-between "Fri Feb 19 09:44:29 CET 2016" "Thu Feb 18 18:41:59 CET 2016")) ;; 54150.0
+      (hashes-diff (- 147911166 126260951)))  ;; 21650215 hashes
+    (/ hashes-diff seconds));; 399.81929824561405 hash/s
+#+end_src
+399.8 hashes/s
+
+** Remains
+
+So at current speed, remains ~4 days left
+#+begin_src elisp
+(/ 140859511 399.8);; 352324.939969985 seconds
+(/ (/ 140859511 399.8) (* 60.0 60.0 24.0));; 4.077834953356308 day
+#+end_src
