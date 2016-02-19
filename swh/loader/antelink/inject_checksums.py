@@ -34,7 +34,7 @@ def load_file(path):
             path = data[4]
             # some line can be empty on sha1, sha1_git, sha256 (when
             # huge file or pb during hash computation)
-            origin_sha1 = os.path.basename(path).split('.gz')[0]
+            origin_sha1 = utils.sha1_from_path(path)
             if data[0]:
                 yield {'origin_sha1': hashutil.hex_to_hash(origin_sha1),
                        'sha1': hashutil.hex_to_hash(data[0]),

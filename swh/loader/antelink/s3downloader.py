@@ -28,7 +28,6 @@ def to_content(path, log=None, max_content_size=None, origin_id=None):
 
     """
     data = utils.compute_hash(path, with_data=True)
-    log.info('to content: %s' % data)
     size = data['length']
     ret = {
         'sha1': data['sha1'],
@@ -92,7 +91,8 @@ class AntelinkS3Downloader(config.SWHConfig):
         s3path = self.config['bucket'] + dirpath
 
         if DRY_RUN:
-            self.log.warn('%s -> %s downloaded (dry run)!' % (s3path, full_dest_path))
+            self.log.warn('%s -> %s downloaded (dry run)!' %
+                          (s3path, full_dest_path))
             return
 
         if os.path.exists(full_dest_path):
@@ -107,7 +107,15 @@ class AntelinkS3Downloader(config.SWHConfig):
             data = to_content(full_dest_path,
                               log=self.log,
                               max_content_size=self.config['max_content_size'])
-            self.log.info('content to send: %s' % data)
+
+            # Check for corruption on sha1
+            origin_sha1 = utils.sha1_from_path(full_dest_path)
+            sha1 = hashutil.hash_to_hex(data['sha1'])
+            if origin_sha1 != sha1:
+                self.log.warn('(%s, %s) corrupted! %s != %s! Skipped' %
+                              (s3path, full_dest_path, origin_sha1, sha1))
+                return
+
             self.storage.content_add([data])
         except Exception as e:
             self.log.error('Problem during retrieval of %s: %s' %

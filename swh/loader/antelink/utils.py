@@ -5,6 +5,7 @@
 
 import gzip
 import itertools
+import os
 
 from swh.loader.antelink import hashutil
 
@@ -96,3 +97,15 @@ def split_data(data, block_size):
     splitdata = grouper(data, block_size, fillvalue=None)
     for _data in splitdata:
         yield (d for d in _data if d)
+
+
+def sha1_from_path(path):
+    """Path expected to ends with .gz.
+
+    Ex: /some/path/to/<sha1>.gz
+
+    Returns:
+        sha1 extracted from the pathname.
+
+    """
+    return os.path.basename(path).split('.')[0]

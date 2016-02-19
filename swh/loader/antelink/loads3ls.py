@@ -25,7 +25,7 @@ def load_data(path):
             l = len(data)
             pathname = data[l - 1]
             if pathname.endswith('.gz'):
-                sha1 = bytes.fromhex(os.path.basename(pathname).split('.')[0])
+                sha1 = bytes.fromhex(utils.sha1_from_path(path))
                 length = data[l - 2]
                 yield {'sha1': sha1,
                        'path': pathname,
