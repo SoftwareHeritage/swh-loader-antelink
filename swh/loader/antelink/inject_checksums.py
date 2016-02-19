@@ -34,8 +34,10 @@ def load_file(path):
             path = data[4]
             # some line can be empty on sha1, sha1_git, sha256 (when
             # huge file or pb during hash computation)
+            origin_sha1 = os.path.basename(path).split('.gz')[0]
             if data[0]:
-                yield {'sha1': hashutil.hex_to_hash(data[0]),
+                yield {'origin_sha1': hashutil.hex_to_hash(origin_sha1),
+                       'sha1': hashutil.hex_to_hash(data[0]),
                        'sha1_git': hashutil.hex_to_hash(data[1]),
                        'sha256': hashutil.hex_to_hash(data[2]),
                        'length': data[3],
@@ -54,7 +56,7 @@ def store_file_content(db_url, path):
     with db.transaction() as cur:
         for data in utils.split_data(load_file(path), BLOCK_SIZE):
             db.copy_to(data, 'content_sesi_all',
-                       ['sha1', 'sha1_git', 'sha256', 'length',
+                       ['origin_sha1', 'sha1', 'sha1_git', 'sha256', 'length',
                         'path', 'corrupted'], cur)
 
 
