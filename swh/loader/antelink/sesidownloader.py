@@ -23,7 +23,7 @@ def retrieve_sesi_file(sesi_path, path):
     subprocess.check_output(cmd, universal_newlines=True)
 
 
-class SesiDownloader(config.SWHConfig):
+class AntelinkSesiDownloader(config.SWHConfig):
     """A bulk loader for downloading some file from s3.
 
     """
@@ -48,7 +48,7 @@ class SesiDownloader(config.SWHConfig):
                                    config['storage_args'])
 
         self.log = logging.getLogger(
-            'swh.antelink.loader.SesiDownloader')
+            'swh.antelink.loader.AntelinkSesiDownloader')
 
     def process_paths(self, paths):
         # Retrieve the list of files
