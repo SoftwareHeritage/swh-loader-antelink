@@ -108,7 +108,7 @@ corresponding store (/antelink/store{10,11,12,13,14,15,16,4,5,6,7,8,9}):
 |---------+-----------+-----------+----------+-----------+-----------|
 | Store   |  Expected |    Actual |  Remains |      Done | injected? |
 |---------+-----------+-----------+----------+-----------+-----------|
-| store10 |  32269834 |  32269834 |        0 |       100 | %         |
+| store10 |  32269834 |  32269834 |        0 |       100 | X         |
 | store11 |   6353200 |   6353200 |        0 |       100 | X         |
 | store12 |   6356584 |   6356584 |        0 |       100 | X         |
 | store13 |   6192914 |   6192914 |        0 |       100 | X         |
@@ -122,12 +122,30 @@ corresponding store (/antelink/store{10,11,12,13,14,15,16,4,5,6,7,8,9}):
 | store8  |  32249986 |  20282705 | 11967281 | 62.892136 |           |
 | store9  |   6196342 |   6196342 |        0 |       100 | X         |
 |---------+-----------+-----------+----------+-----------+-----------|
-| total   | 289480591 | 236863142 | 52617449 | 81.823497 |           |
+| total   | 289480591 | 236863142 | 52617449 | 81.823497 | 128251802 |
 |---------+-----------+-----------+----------+-----------+-----------|
 #+TBLFM: $4=$2-$3::@15$2=vsum(@2$2..@14$2)::@15$3=vsum(@2$3..@14$3)::$5=(100*$3)/$2
 
 Note: There remains:
-- huge file to deal with (~100)
+- huge file to deal with (~370)
+
+#+begin_src sql
+antelink=> select count(*) from content_sesi_all;
+   count
+-----------
+ 128251802
+(1 row)
+#+end_src
+
+# (+ 32269834  6353200  6356584  6192914 32262055 32268595  6352648 6196342) ;; 128252172
+
+# delta: (- 128252172 128251802);; 370  (this matched the skipped entries - >2g compressed files - in csv inputs)
+
+Skipped files:
+#+begin_src sh
+ardumont@worker08:~$ grep skipped stats/inject-checksums-* | wc -l
+370
+#+end_src
 
 ** Estimated average speed
 
