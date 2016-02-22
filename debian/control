@@ -1,0 +1,22 @@
+Source: swh-loader-antelink
+Maintainer: Software Heritage developers <swh-devel@inria.fr>
+Section: python
+Priority: optional
+Build-Depends: debhelper (>= 9),
+               dh-python,
+               python3-all,
+               python3-nose,
+               python3-setuptools,
+               python3-swh.core (>= 0.0.15~),
+               python3-swh.storage (>= 0.0.34~),
+               python3-vcversioner
+Standards-Version: 3.9.6
+Homepage: https://forge.softwareheritage.org/diffusion/<MODULE-CODE>/
+
+Package: python3-swh.loader.antelink
+Architecture: all
+Depends: python3-swh.core (>= 0.0.15~),
+         python3-swh.storage (>= 0.0.34~),
+         ${misc:Depends},
+         ${python3:Depends}
+Description: Software Heritage Antelink Loader
