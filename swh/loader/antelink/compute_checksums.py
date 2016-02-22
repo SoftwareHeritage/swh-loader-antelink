@@ -23,7 +23,7 @@ dry_run = False
 LOG_LEVEL = logging.WARN  # logging.INFO
 
 SHA1_RE = re.compile(r'^[0-9a-fA-F]{40}$')
-MAX_SIZE_TARBALL = 2*1024*1024*1024  # 2G tarball threshold
+MAX_SIZE_TARBALL = None  # 2*1024*1024*1024  # 2G tarball threshold
 
 
 def is_sha1(s):
@@ -68,7 +68,7 @@ def main():
             continue
 
         filesize = os.lstat(path).st_size
-        if filesize >= MAX_SIZE_TARBALL:
+        if MAX_SIZE_TARBALL and filesize >= MAX_SIZE_TARBALL:
             logging.warn('Huge compressed file (%s, %s) detected... '
                          'Skipping computation for now.'
                          % (path, filesize))
@@ -109,6 +109,7 @@ def main():
 
 if __name__ == '__main__':
     process_log_file = sys.argv[1]
+
     logging.basicConfig(level=LOG_LEVEL,
                         handlers=[logging.FileHandler(process_log_file),
                                   logging.StreamHandler()])
