@@ -23,7 +23,7 @@ dry_run = False
 LOG_LEVEL = logging.WARN  # logging.INFO
 
 SHA1_RE = re.compile(r'^[0-9a-fA-F]{40}$')
-MAX_SIZE_TARBALL =  2*1024*1024*1024  # 2G tarball threshold
+MAX_SIZE_TARBALL = 2*1024*1024*1024  # 2G tarball threshold
 
 
 def is_sha1(s):
@@ -73,7 +73,7 @@ def main():
                          'Skipping computation for now.'
                          % (path, filesize))
             # print out the path without computations
-            print(','.join(['','','','',path,'']))
+            print(','.join(['', '', '', '', path, '']))
             continue
         else:
             logging.info('File gz (%s, %s) detected' % (path, filesize))
@@ -83,7 +83,7 @@ def main():
         except Exception as e:
             logging.error('Problem during hash computation for (%s, %s)... %s'
                           % (path, filesize, e))
-            print(','.join(['','','','',path,'']))
+            print(','.join(['', '', '', '', path, '']))
             continue
 
         content_sha1 = hashutil.hash_to_hex(data['sha1'])

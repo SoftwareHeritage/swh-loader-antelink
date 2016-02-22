@@ -6,8 +6,6 @@
 """Tryout module to filter data already present in swh storage."""
 
 
-import itertools
-
 from swh.storage import get_storage
 
 from swh.loader.antelink import sesi, utils
@@ -35,13 +33,15 @@ def read_sha1():
 if __name__ == '__main__':
     conf = {
         'storage_class': 'remote_storage',
-        # 'storage_args': ['http://uffizi.internal.softwareheritage.org:5002/'],  # prod
-        'storage_args': ['http://localhost:5000/'],                               # local
+        # 'storage_args': [
+        #  'http://uffizi.internal.softwareheritage.org:5002/'],  # prod
+        'storage_args': ['http://localhost:5000/'],               # local
     }
 
     storage = get_storage(conf['storage_class'], conf['storage_args'])
 
-    group_contents = utils.grouper(read_sha1(), NB_CONTENT_PER_BLOCK, fillvalue=None)
+    group_contents = utils.grouper(read_sha1(), NB_CONTENT_PER_BLOCK,
+                                   fillvalue=None)
 
     contents = {}
     contents_from_s3 = {}
@@ -51,7 +51,8 @@ if __name__ == '__main__':
         # keep information about content
         for content in group_content:
             if content:
-                content['path'] = content['path'] + '.gz'  # hack: change the db's values
+                # hack: change the db's values
+                content['path'] = content['path'] + '.gz'
                 contents[content['sha1']] = content
 
         # check the missing sha1s
