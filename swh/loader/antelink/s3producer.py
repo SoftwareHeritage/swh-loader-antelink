@@ -9,7 +9,7 @@ from swh.loader.antelink.db import Db
 def list_s3_file(db_url):
     db = Db.connect(db_url)
     with db.transaction() as cur:
-        for path in db.read_content_s3_not_in_sesi(cur):
+        for path in db.read_content_s3_not_in_sesi_nor_in_swh(cur):
             yield path[0]
 
 
