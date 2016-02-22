@@ -16,7 +16,8 @@ import os
 import re
 import sys
 
-from swh.loader.antelink import hashutil, utils
+from swh.core import hashutil
+from swh.loader.antelink import utils
 
 dry_run = False
 LOG_LEVEL = logging.WARN  # logging.INFO

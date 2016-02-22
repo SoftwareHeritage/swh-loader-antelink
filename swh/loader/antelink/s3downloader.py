@@ -8,10 +8,10 @@ import logging
 import os
 import subprocess
 
-from swh.core import config
+from swh.core import config, hashutil
 from swh.storage import get_storage
 
-from swh.loader.antelink import utils, hashutil
+from swh.loader.antelink import utils
 
 
 DRY_RUN = False

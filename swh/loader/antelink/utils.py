@@ -7,7 +7,7 @@ import gzip
 import itertools
 import os
 
-from swh.loader.antelink import hashutil
+from swh.core import hashutil
 
 
 def grouper(iterable, n, fillvalue=None):
