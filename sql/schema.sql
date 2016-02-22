@@ -28,14 +28,18 @@ create table content_s3
 
 create table content_sesi_all
 (
-    origin_sha1 sha1 primary key not null,
+    origin_sha1 sha1 not null,
     sha1        sha1 not null,
     sha1_git    sha1_git not null,
     sha256      sha256 not null,
     length      bigint not null,
     path text   not null,
-    corrupted   boolean not null
+    corrupted   boolean not null,
+    primary key (origin_sha1, path)
 );
+
+-- alter table content_sesi_all drop constraint content_sesi_all_pkey;
+-- alter table content_sesi_all add primary key(origin_sha1, path);
 
 
 -- Create content present on s3 and not on sesi (could be present in
