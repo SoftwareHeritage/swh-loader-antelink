@@ -23,39 +23,6 @@ def download_s3_file(s3path, path):
     subprocess.check_output(cmd, universal_newlines=True)
 
 
-def to_content(path, log=None, max_content_size=None, origin_id=None):
-    """Load path into a content for swh.
-
-    """
-    data = utils.compute_hash(path, with_data=True)
-    size = data['length']
-    ret = {
-        'sha1': data['sha1'],
-        'sha1_git': data['sha1_git'],
-        'sha256': data['sha256'],
-        'length': size,
-    }
-
-    if max_content_size and size > max_content_size:
-        if log:
-            log.info('Skipping content %s, too large (%s > %s)' %
-                     (hashutil.hash_to_hex(data['sha1']), size,
-                      max_content_size))
-        ret.update({
-            'status': 'absent',
-            'reason': 'Content too large',
-            'origin': origin_id,
-        })
-        return ret
-
-    ret.update({
-        'status': 'visible',
-        'data': data['data']
-    })
-
-    return ret
-
-
 class AntelinkS3Downloader(config.SWHConfig):
     """A bulk loader for downloading some file from s3.
 
@@ -104,9 +71,10 @@ class AntelinkS3Downloader(config.SWHConfig):
         os.makedirs(parent_path, exist_ok=True)
 
         try:
-            data = to_content(full_dest_path,
-                              log=self.log,
-                              max_content_size=self.config['max_content_size'])
+            data = utils.to_content(
+                full_dest_path,
+                log=self.log,
+                max_content_size=self.config['max_content_size'])
 
             # Check for corruption on sha1
             origin_sha1 = utils.sha1_from_path(full_dest_path)
@@ -120,6 +88,6 @@ class AntelinkS3Downloader(config.SWHConfig):
         except Exception as e:
             self.log.error('Problem during retrieval of %s: %s' %
                            (full_dest_path, e))
-        # finally:
-        #     if os.path.exists(full_dest_path):
-        #         os.delete(full_dest_path)
+        finally:
+            if os.path.exists(full_dest_path):
+                os.delete(full_dest_path)

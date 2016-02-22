@@ -109,3 +109,36 @@ def sha1_from_path(path):
 
     """
     return os.path.basename(path).split('.')[0]
+
+
+def to_content(path, log=None, max_content_size=None, origin_id=None):
+    """Load path into a content for swh.
+
+    """
+    data = compute_hash(path, with_data=True)
+    size = data['length']
+    ret = {
+        'sha1': data['sha1'],
+        'sha1_git': data['sha1_git'],
+        'sha256': data['sha256'],
+        'length': size,
+    }
+
+    if max_content_size and size > max_content_size:
+        if log:
+            log.info('Skipping content %s, too large (%s > %s)' %
+                     (hashutil.hash_to_hex(data['sha1']), size,
+                      max_content_size))
+        ret.update({
+            'status': 'absent',
+            'reason': 'Content too large',
+            'origin': origin_id,
+        })
+        return ret
+
+    ret.update({
+        'status': 'visible',
+        'data': data['data']
+    })
+
+    return ret
