@@ -188,7 +188,7 @@ So ~465.5 hashes/s
 
 ** Remains
 
-So at current speed, remains ~1.1 days left
+So at current speed, remains ~0.74 days left
 #+begin_src elisp
 (defun swh-worker-remains-in-days (speed-per-second remain-comps)
   "Compute the remaining days given SPEED-PER-SECOND and REMAIN-COMPS to do."
@@ -198,11 +198,11 @@ So at current speed, remains ~1.1 days left
 
 (let* ((snap-date0 "Mon Feb 22 11:16:46 CET 2016")
        (comps-done-date0 238044401)
-       (snap-date1 "Mon Feb 22 14:48:41 CET 2016")
-       (comps-done-date1 245227449)
+       (snap-date1 "Mon Feb 22 18:30:10 CET 2016")
+       (comps-done-date1 252840568)
        (total-comps-to-do 289480591)
        (remain-comp (- total-comps-to-do comps-done-date1)))
   (-> (swh-worker-average-speed-per-day snap-date0 comps-done-date0 snap-date1 comps-done-date1)
       (swh-worker-remains-in-days remain-comp)))
-;; 0.9066464486716451
+;; 0.7453031007681471
 #+end_src
