@@ -105,55 +105,31 @@ corresponding store (/antelink/store{10,11,12,13,14,15,16,4,5,6,7,8,9}):
 
 * Hash computation running on sesi:
 
-|---------+-----------+-----------+-----------+-----------+-------------|
-| Store   |  Expected |    Actual |   Remains |      Done | db injected |
-|---------+-----------+-----------+-----------+-----------+-------------|
-| store10 |  32269834 |  32269834 |         0 |       100 |             |
-| store11 |   6353200 |   6353200 |         0 |       100 | X           |
-| store12 |   6356584 |   6095037 |    261547 | 95.885416 |             |
-| store13 |   6192914 |   5970461 |    222453 | 96.407943 |             |
-| store14 |  32262055 |  32262055 |         0 |       100 | X           |
-| store15 |  32268595 |  32268595 |         0 |       100 | X           |
-| store16 |   6352648 |   6352648 |         0 |       100 | X           |
-| store4  |  32236548 |  15849673 |  16386875 | 49.166781 |             |
-| store5  |  32246790 |  11973633 |  20273157 | 37.131240 |             |
-| store6  |  32230119 |   8033977 |  24196142 | 24.926923 |             |
-| store7  |  32264976 |   9000000 |  23264976 | 27.894024 |             |
-| store8  |  32249986 |   9000000 |  23249986 | 27.906989 |             |
-| store9  |   6196342 |   4272722 |   1923620 | 68.955555 |             |
-|---------+-----------+-----------+-----------+-----------+-------------|
-| total   | 289480591 | 179701835 | 109778756 | 62.077335 | 77236358    |
-|---------+-----------+-----------+-----------+-----------+-------------|
+|---------+-----------+-----------+----------+-----------+---|
+| Store   |  Expected |    Actual |  Remains |      Done |   |
+|---------+-----------+-----------+----------+-----------+---|
+| store10 |  32269834 |  32269834 |        0 |       100 | X |
+| store11 |   6353200 |   6353200 |        0 |       100 | X |
+| store12 |   6356584 |   6356584 |        0 |       100 | X |
+| store13 |   6192914 |   6192914 |        0 |       100 | X |
+| store14 |  32262055 |  32262055 |        0 |       100 | X |
+| store15 |  32268595 |  32268595 |        0 |       100 | X |
+| store16 |   6352648 |   6352648 |        0 |       100 | X |
+| store4  |  32236548 |  27374993 |  4861555 | 84.919120 |   |
+| store5  |  32246790 |  22091436 | 10155354 | 68.507396 |   |
+| store6  |  32230119 |  18100039 | 14130080 | 56.158772 |   |
+| store7  |  32264976 |  20761797 | 11503179 | 64.347784 |   |
+| store8  |  32249986 |  20282705 | 11967281 | 62.892136 |   |
+| store9  |   6196342 |   6196342 |        0 |       100 | X |
+|---------+-----------+-----------+----------+-----------+---|
+| total   | 289480591 | 236863142 | 52617449 | 81.823497 |   |
+|---------+-----------+-----------+----------+-----------+---|
 #+TBLFM: $4=$2-$3::@15$2=vsum(@2$2..@14$2)::@15$3=vsum(@2$3..@14$3)::$5=(100*$3)/$2
 
-
-db injection status:
-#+begin_src sql
-antelink=> select count(*) from content_sesi_all;
-  count
-----------
- 77236358
-(1 row)
-#+end_src
-
-(+ 6353200 32262055 32268595 6352648);; 77236498
-
-
-The missing part must be an offset introduced after:
-- one error that happened during hash computation (the content is then skipped without being written... fixed now)
-- the main process stopped
-- the resumption is taken using the number of lines being processed
-
 Note: There remains:
-- offset to consider
 - huge file to deal with (~100)
-- some files were issued problems when computation hash (2 for the moment)
 
 ** Estimated average speed
-
-As of:
-- Thu Feb 18 18:41:59 CET 2016, 126260951 hash computations done
-- Fri Feb 19 09:44:29 CET 2016, 147911166 hash computations done
 
 #+begin_src elisp
 (require 'dash)
@@ -171,18 +147,44 @@ Compute the time."
 They are both string parseable date time."
   (let ((t1 (swh-worker-to-time str-date1))
         (t0 (swh-worker-to-time str-date0)))
-    (time-to-seconds (time-subtract t1 t0))))
+    (-> (time-subtract t1 t0)
+        time-to-seconds
+        abs)))
 
-(let ((seconds (swh-worker-time-in-seconds-between "Fri Feb 19 09:44:29 CET 2016" "Thu Feb 18 18:41:59 CET 2016")) ;; 54150.0
-      (hashes-diff (- 147911166 126260951)))  ;; 21650215 hashes
-    (/ hashes-diff seconds));; 399.81929824561405 hash/s
+(defun swh-worker-average-speed-per-day (str-date1 num-date1 str-date0 num-date0)
+  "Compute the average speed per day.
+STR-DATE1 snapshot time t1
+NUM-DATE1 number of computations done at t1
+STR-DATE0 snapshot time t0
+NUM-DATE0 number of computations done at t0."
+  (let ((seconds (swh-worker-time-in-seconds-between str-date0 str-date1))
+        (hashes-diff (abs (- num-date0 num-date1))))
+    (/ hashes-diff seconds)))
 #+end_src
-399.8 hashes/s
+
+So ~465.5 hashes/s
+#+begin_src elisp
+(swh-worker-average-speed-per-day "Mon Feb 22 11:29:40 CET 2016" 238404724 "Mon Feb 22 11:16:46 CET 2016" 238044401);; 465.53359173126614
+(swh-worker-average-speed-per-day "Mon Feb 22 14:48:41 CET 2016" 245227449 "Mon Feb 22 11:16:46 CET 2016" 238044401);; 564.927093983484
+#+end_src
 
 ** Remains
 
-So at current speed, remains ~4 days left
+So at current speed, remains ~1.1 days left
 #+begin_src elisp
-(/ 140859511 399.8);; 352324.939969985 seconds
-(/ (/ 140859511 399.8) (* 60.0 60.0 24.0));; 4.077834953356308 day
+(defun swh-worker-remains-in-days (speed-per-second remain-comps)
+  "Compute the remaining days given SPEED-PER-SECOND and REMAIN-COMPS to do."
+  (let ((remaining-time (/ remain-comps speed-per-second))
+        (nb-seconds-in-a-day (* 60.0 60.0 24.0)))
+    (/ remaining-time nb-seconds-in-a-day)))
+
+(let* ((snap-date0 "Mon Feb 22 11:16:46 CET 2016")
+       (comps-done-date0 238044401)
+       (snap-date1 "Mon Feb 22 14:48:41 CET 2016")
+       (comps-done-date1 245227449)
+       (total-comps-to-do 289480591)
+       (remain-comp (- total-comps-to-do comps-done-date1)))
+  (-> (swh-worker-average-speed-per-day snap-date0 comps-done-date0 snap-date1 comps-done-date1)
+      (swh-worker-remains-in-days remain-comp)))
+;; 0.9066464486716451
 #+end_src
