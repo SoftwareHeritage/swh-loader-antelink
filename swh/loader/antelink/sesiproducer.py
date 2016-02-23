@@ -16,13 +16,17 @@ def list_files(db_url):
 
 if __name__ == '__main__':
     db_url = "%s" % sys.argv[1]
+    if len(sys.argv) > 2:
+        block_size = int(sys.argv[2])
+    else:
+        block_size = 1000
 
     # instantiate celery app with its configuration
-    from swh.scheduler.worker import app
+    from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
 
     genpaths = utils.grouper(list_files(db_url),
-                             block_size=1000, fillvalue=None)
+                             block_size, fillvalue=None)
     for paths in genpaths:
         app.tasks['swh.loader.antelink.tasks.DownloadSesiAntelinkFiles'].delay(
-            (p for p in paths if p))
+            list(p for p in paths if p))

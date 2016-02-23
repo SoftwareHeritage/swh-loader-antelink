@@ -14,13 +14,16 @@ from swh.storage import get_storage
 from swh.loader.antelink import utils
 
 
-DRY_RUN = False
+def retrieve_sesi_files(host, sesi_paths, destination_path):
+    """Download the sesi_paths files to destination path.
 
-
-def retrieve_sesi_file(sesi_path, path):
-    """Download the sesi_path file to path."""
-    cmd = ['scp', sesi_path, path]
-    subprocess.check_output(cmd, universal_newlines=True)
+    """
+    spaths = (host + ':' + p for p in sesi_paths)
+    cmd = ['scp'] + list(spaths) + [destination_path]
+    subprocess.check_call(cmd)
+    for path in sesi_paths:
+        yield os.path.sep.join([destination_path.rstrip('/'),
+                                os.path.basename(path)])
 
 
 class AntelinkSesiDownloader(config.SWHConfig):
@@ -30,7 +33,6 @@ class AntelinkSesiDownloader(config.SWHConfig):
     DEFAULT_CONFIG = {
         'storage_class': ('str', 'remote_storage'),
         'storage_args': ('list[str]', ['http://localhost:5000/']),
-        'db_url': ('string', 'service=antelink-swh'),
         'host': ('string', 'sesi-pv-lc2.inria.fr'),
         'destination_path': ('string',
                              '/srv/storage/space/antelink/inject-checksums/'),
@@ -52,47 +54,40 @@ class AntelinkSesiDownloader(config.SWHConfig):
 
     def process_paths(self, paths):
         # Retrieve the list of files
-        for path in paths:
-            full_dest_path = self.config['destination_path'] + path
-            sesi_path = self.config['host'] + ':' + path
-
-            if DRY_RUN:
-                self.log.warn('%s -> %s downloaded (dry run)!' %
-                              (sesi_path, full_dest_path))
+        for local_path in paths:
+            if not os.path.exists(local_path):
+                self.log.warn('%s does not exist!' % local_path)
                 return
-
-            if os.path.exists(full_dest_path):
-                self.log.warn('%s exists!' % full_dest_path)
-            else:
-                retrieve_sesi_file(sesi_path, full_dest_path)
-
-            parent_path = os.path.dirname(full_dest_path)
-            os.makedirs(parent_path, exist_ok=True)
 
             try:
                 data = utils.to_content(
-                    full_dest_path,
+                    local_path,
                     log=self.log,
                     max_content_size=self.config['max_content_size'])
 
                 # Check for corruption on sha1
-                origin_sha1 = utils.sha1_from_path(full_dest_path)
+                origin_sha1 = utils.sha1_from_path(local_path)
                 sha1 = hashutil.hash_to_hex(data['sha1'])
                 if origin_sha1 != sha1:
-                    self.log.warn('(%s, %s) corrupted! %s != %s! Skipped' %
-                                  (sesi_path, full_dest_path, origin_sha1,
-                                   sha1))
+                    self.log.warn('%s corrupted! %s != %s! Skipped' %
+                                  (local_path, origin_sha1, sha1))
                     return
 
                 yield data
             except Exception as e:
-                self.log.error('Problem during retrieval of %s: %s' %
-                               (full_dest_path, e))
+                self.log.error('Problem with %s: %s' %
+                               (local_path, e))
             finally:
-                if os.path.exists(full_dest_path):
-                    os.delete(full_dest_path)
+                if os.path.exists(local_path):
+                    os.remove(local_path)
 
     def process(self, paths):
-        data = self.process_paths(paths)
+        # Retrieve the data from sesi first
+        local_paths = retrieve_sesi_files(self.config['host'],
+                                          paths,
+                                          self.config['destination_path'])
+
+        # Then process them and store in swh
+        data = self.process_paths(local_paths)
         if data:
-            self.storage.content_add(list(data))
+            self.storage.content_add(data)

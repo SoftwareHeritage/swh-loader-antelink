@@ -17,7 +17,7 @@ if __name__ == '__main__':
     db_url = "%s" % sys.argv[1]
 
     # instantiate celery app with its configuration
-    from swh.scheduler.worker import app
+    from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
 
     for path in list_s3_file(db_url):

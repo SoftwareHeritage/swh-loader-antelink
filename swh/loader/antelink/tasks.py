@@ -15,7 +15,7 @@ class DownloadS3AntelinkFile(Task):
     """
     task_queue = 'swh_s3_antelink_downloader'
 
-    CONFIG_BASE_FILENAME = 'downloader/antelink.ini'
+    CONFIG_BASE_FILENAME = 'downloader/antelink-s3.ini'
     ADDITIONAL_CONFIG = {}
 
     def __init__(self):

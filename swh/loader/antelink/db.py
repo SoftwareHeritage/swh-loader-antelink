@@ -192,4 +192,15 @@ class Db:
         cur.execute("""SELECT path
                        FROM content_sesi_not_in_swh
                        LIMIT 1""")
+
+        # yield from (('/antelink/store9/antelink/b/b/b/7/b/b7b31659ee2c80aba97f5fc757724a5955d1f6ab.gz',),  # noqa
+        #              ('/antelink/store9/antelink/b/b/b/7/b/b7b86322bfe6292794a12e3d813f84111f77839d.gz',),  # noqa
+        #              ('/antelink/store9/antelink/b/b/b/7/b/b7bcad098e7248a926cbb673277ff2967e281226.gz',),  # noqa
+        #              ('/antelink/store9/antelink/b/b/b/7/b/b7b7f51cac82ebd091835ab13455a28fa986e2d7.gz',),  # noqa
+        #              ('/antelink/store9/antelink/b/b/b/7/b/b7b1dd3c30e503fe2143d6adb9bde3a9e7fc6f52.gz',),  # noqa
+        #              ('/antelink/store9/antelink/b/b/b/7/b/b7b06a3c4f4d9882014eb59afb2a20d9cb3bb136.gz',),  # noqa
+        #              ('/antelink/store9/antelink/b/b/b/7/b/b7b3baa4e152a421bd0533cde1bf8cd866ac01bc.gz',),  # noqa
+        #              ('/antelink/store9/antelink/b/b/b/7/b/b7bbc975814e5b1bd489d5a59ecad0029e5f2e3f.gz',),  # noqa
+        #              ('/antelink/store9/antelink/b/b/b/7/b/b7be8837d6518c38992c1529dd35b4603584d056.gz',),  # noqa
+        #              ('/antelink/store9/antelink/b/b/b/7/b/b7bcd6ee7278ca6abd350c47fc7609f58a33711d.gz',))  # noqa
         yield from cursor_to_bytes(cur)
