@@ -96,6 +96,14 @@ do
     cat $in | PYTHONPATH=$PYTHONPATH:/home/andumont/swh-core:/home/andumont/swh-loader-antelink python3 -m swh.loader.antelink.compute_checksums $logfile > $out
 done
 
+for file in store5.30;
+do
+    in=/antelink/store0/tmp-compute-checksums/store5/file-$file.csv
+    out=/antelink/store0/tmp-compute-checksums/store5/checksums-$file.csv
+    logfile=/home/andumont/compute-checksums-$file.log
+    cat $in | PYTHONPATH=$PYTHONPATH:/home/andumont/swh-core:/home/andumont/swh-loader-antelink python3 -m swh.loader.antelink.compute_checksums $logfile > $out
+done
+
 # store6 (running)
 for file in store6.23.02 store6.24;
 do
