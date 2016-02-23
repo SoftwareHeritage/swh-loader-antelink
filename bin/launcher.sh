@@ -97,7 +97,7 @@ do
 done
 
 # store6 (running)
-for file in store6.21.02 store6.22 store6.23 store6.24 store6.25;
+for file in store6.23.02 store6.24;
 do
     in=/antelink/store0/tmp-compute-checksums/store6/file-$file.csv
     out=/antelink/store0/tmp-compute-checksums/store6/checksums-$file.csv
@@ -105,7 +105,31 @@ do
     cat $in | PYTHONPATH=$PYTHONPATH:/home/andumont/swh-core:/home/andumont/swh-loader-antelink python3 -m swh.loader.antelink.compute_checksums $logfile > $out
 done
 
-for file in store6.27.02 store6.28 store6.29 store6.30 store6.31 store6.32 store6.33;
+for file in store6.25;
+do
+    in=/antelink/store0/tmp-compute-checksums/store6/file-$file.csv
+    out=/antelink/store0/tmp-compute-checksums/store6/checksums-$file.csv
+    logfile=/home/andumont/compute-checksums-$file.log
+    cat $in | PYTHONPATH=$PYTHONPATH:/home/andumont/swh-core:/home/andumont/swh-loader-antelink python3 -m swh.loader.antelink.compute_checksums $logfile > $out
+done
+
+for file in store6.30.02 store6.31;
+do
+    in=/antelink/store0/tmp-compute-checksums/store6/file-$file.csv
+    out=/antelink/store0/tmp-compute-checksums/store6/checksums-$file.csv
+    logfile=/home/andumont/compute-checksums-$file.log
+    cat $in | PYTHONPATH=$PYTHONPATH:/home/andumont/swh-core:/home/andumont/swh-loader-antelink python3 -m swh.loader.antelink.compute_checksums $logfile > $out
+done
+
+for file in store6.32;
+do
+    in=/antelink/store0/tmp-compute-checksums/store6/file-$file.csv
+    out=/antelink/store0/tmp-compute-checksums/store6/checksums-$file.csv
+    logfile=/home/andumont/compute-checksums-$file.log
+    cat $in | PYTHONPATH=$PYTHONPATH:/home/andumont/swh-core:/home/andumont/swh-loader-antelink python3 -m swh.loader.antelink.compute_checksums $logfile > $out
+done
+
+for file in store6.33;
 do
     in=/antelink/store0/tmp-compute-checksums/store6/file-$file.csv
     out=/antelink/store0/tmp-compute-checksums/store6/checksums-$file.csv
