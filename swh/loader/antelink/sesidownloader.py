@@ -36,7 +36,6 @@ class AntelinkSesiDownloader(config.SWHConfig):
         'host': ('string', 'sesi-pv-lc2.inria.fr'),
         'destination_path': ('string',
                              '/srv/storage/space/antelink/inject-checksums/'),
-        'max_content_size': ('int', 100 * 1024 * 1024),
     }
 
     def __init__(self, config):
@@ -60,10 +59,7 @@ class AntelinkSesiDownloader(config.SWHConfig):
                 return
 
             try:
-                data = utils.to_content(
-                    local_path,
-                    log=self.log,
-                    max_content_size=self.config['max_content_size'])
+                data = utils.to_content(local_path, log=self.log)
 
                 # Check for corruption on sha1
                 origin_sha1 = utils.sha1_from_path(local_path)

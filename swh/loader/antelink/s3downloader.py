@@ -33,7 +33,6 @@ class AntelinkS3Downloader(config.SWHConfig):
         'db_url': ('string', 'service=antelink-swh'),
         'bucket': ('string', 's3://antelink-object-storage'),
         'destination_path': ('string', '/home/storage/antelink/s3/'),
-        'max_content_size': ('int', 100 * 1024 * 1024),
     }
 
     def __init__(self, config):
@@ -71,10 +70,7 @@ class AntelinkS3Downloader(config.SWHConfig):
         os.makedirs(parent_path, exist_ok=True)
 
         try:
-            data = utils.to_content(
-                full_dest_path,
-                log=self.log,
-                max_content_size=self.config['max_content_size'])
+            data = utils.to_content(full_dest_path, log=self.log)
 
             # Check for corruption on sha1
             origin_sha1 = utils.sha1_from_path(full_dest_path)
