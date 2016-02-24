@@ -26,7 +26,7 @@ create table content_s3
 
 -- alter table content_s3 alter column sha1 set data type sha1;
 
-create table content_sesi_all
+create table content_sesi
 (
     origin_sha1 sha1 not null,
     sha1        sha1 not null,
@@ -38,9 +38,57 @@ create table content_sesi_all
     primary key (origin_sha1, path)
 );
 
+-- create unique index on content_sesi (sha1);
+create index on content_sesi (sha1)
+where not corrupted;
+
 -- alter table content_sesi_all drop constraint content_sesi_all_pkey;
 -- alter table content_sesi_all add primary key(origin_sha1, path);
 
+-- consider all s3 sha1 that are not already in sesi (if not corrupted)
+create materialized view content_s3_not_in_sesi
+as select sha1
+   from content_s3 as s3
+   where not exists (select 1
+                     from content_sesi as sesi
+                     where s3.sha1 = sesi.sha1
+                     and not corrupted);
+
+create unique index on content_s3_not_in_sesi(sha1);
+
+-- consider from that all sha1 not already in swh
+create materialized view content_s3_not_in_sesi_nor_in_swh
+as select sha1
+   from content_s3_not_in_sesi as s3
+   where not exists (select 1
+                     from content as swh
+                     where s3.sha1 = swh.sha1);
+
+
+-- consider only not corrupted sha1 in sesi not already present in swh
+create materialized view content_sesi_not_in_swh
+as select sha1
+   from content_sesi as sesi
+    where not corrupted
+    and not exists (select 1
+                    from content as swh
+                    where sesi.sha1 = swh.sha1);
+
+-- estimates of files with size >= 100Mib
+select sum(length)
+from content_sesi
+where not corrupted
+and length >= 104857600;
+-- 12490817718209 b = 11.360332535522502 Tib
+
+-- Find the maximal length on content_sesi
+select max(length)
+from content_sesi;
+-- 5659069799 b = 5.2704194551333785 Gib
+
+--
+-- obsolete now
+--
 
 -- Create content present on s3 and not on sesi (could be present in
 -- swh though)...
@@ -67,30 +115,3 @@ as select sha1
                       from content as swh
                       where sesi.sha1 = swh.sha1);
     -- 207095510
-
-
--- consider all s3 sha1 that are not already in sesi (if not corrupted)
-create materialized view content_s3_not_in_sesi
-as select sha1, path
-   from content_s3 as s3
-   where not exists (select 1
-                     from content_sesi as sesi
-                     where s3.sha1 = sesi.sha1
-                     and not corrupted);
-
--- consider from that all sha1 not already in swh
-create materialized view content_s3_not_in_sesi_nor_in_swh
-as select sha1, path
-   from content_s3_not_in_sesi as s3
-   where not exists (select 1
-                     from content as swh
-                     where s3.sha1 = swh.sha1);
-
--- consider only not corrupted sha1 in sesi not already present in swh
-create materialized view content_sesi_not_in_swh
-as select sha1, path
-   from content_sesi as sesi
-    where not corrupted
-    and not exists (select 1
-                    from content as swh
-                    where sesi.sha1 = swh.sha1);
