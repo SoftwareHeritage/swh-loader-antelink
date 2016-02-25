@@ -159,21 +159,6 @@ class Db:
             self._cursor(cur).copy_expert('COPY %s (%s) FROM STDIN CSV' % (
                 tblname, ', '.join(columns)), f)
 
-    def read_sha1(self, cur=None):
-        cur = self._cursor(cur)
-
-        # cur.execute("""select sha1, path from content
-        #                union select sha1, path from content_s3""")
-
-        # yield from cursor_to_bytes(cur)
-
-        with open('export-content.csv') as f:
-            for line in f:
-                l = line.rstrip('\n').split('\t')
-                hash = bytes.fromhex(l[0].replace('\\\\x', ''))
-                path = l[1]
-                yield hash, path
-
     def read_content_s3_not_in_sesi_nor_in_swh(self, cur=None):
         """Retrieve paths to retrieve from s3.
 
