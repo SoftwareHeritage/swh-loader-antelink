@@ -182,6 +182,7 @@ class Db:
                FROM content_sesi_not_in_swh sesi_not_swh
                INNER JOIN content_sesi sesi
                  ON sesi_not_swh.sha1=sesi.sha1
+               WHERE not corrupted
             """ + (" LIMIT %s" % limit if limit else "")
         cur.execute(q)
         yield from cursor_to_bytes(cur)
