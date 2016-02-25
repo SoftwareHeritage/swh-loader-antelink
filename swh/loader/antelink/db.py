@@ -159,22 +159,29 @@ class Db:
             self._cursor(cur).copy_expert('COPY %s (%s) FROM STDIN CSV' % (
                 tblname, ', '.join(columns)), f)
 
-    def read_content_s3_not_in_sesi_nor_in_swh(self, cur=None):
+    def read_content_s3_not_in_sesi_nor_in_swh(self, limit=None, cur=None):
         """Retrieve paths to retrieve from s3.
 
         """
         cur = self._cursor(cur)
-        cur.execute("""SELECT path
-                       FROM content_s3_not_in_sesi_nor_in_swh""")
+        q = """SELECT s3.path
+               FROM content_s3_not_in_sesi_nor_in_swh s3_not
+               INNER JOIN content_s3 s3
+                 on s3_not.sha1 = s3.sha1
+            """ + (
+            " LIMIT %s" % limit if limit else "")
+        cur.execute(q)
         yield from cursor_to_bytes(cur)
 
-    def read_content_sesi_not_in_swh(self, cur=None):
+    def read_content_sesi_not_in_swh(self, limit=None, cur=None):
         """Retrieve paths to retrieve from sesi.
 
         """
         cur = self._cursor(cur)
-        cur.execute("""SELECT path
-                       FROM content_sesi_not_in_swh sesi_not_swh
-                       INNER JOIN content_sesi sesi
-                         ON sesi_not_swh.sha1=sesi.sha1""")
+        q = """SELECT path
+               FROM content_sesi_not_in_swh sesi_not_swh
+               INNER JOIN content_sesi sesi
+                 ON sesi_not_swh.sha1=sesi.sha1
+            """ + (" LIMIT %s" % limit if limit else "")
+        cur.execute(q)
         yield from cursor_to_bytes(cur)

@@ -86,4 +86,4 @@ class AntelinkS3Downloader(config.SWHConfig):
                            (full_dest_path, e))
         finally:
             if os.path.exists(full_dest_path):
-                os.delete(full_dest_path)
+                os.remove(full_dest_path)
