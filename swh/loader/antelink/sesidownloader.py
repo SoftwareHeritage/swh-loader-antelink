@@ -69,6 +69,7 @@ class AntelinkSesiDownloader(config.SWHConfig):
                                   (local_path, origin_sha1, sha1))
                     return
 
+                self.log.info('%s -> swh' % sha1)
                 yield data
             except Exception as e:
                 self.log.error('Problem with %s: %s' %
