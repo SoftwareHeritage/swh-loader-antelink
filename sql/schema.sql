@@ -53,6 +53,7 @@ as select sha1
                      from content_sesi as sesi
                      where s3.sha1 = sesi.sha1
                      and not corrupted);
+-- 16609944
 
 create unique index on content_s3_not_in_sesi(sha1);
 
@@ -63,7 +64,7 @@ as select sha1
    where not exists (select 1
                      from content as swh
                      where s3.sha1 = swh.sha1);
-
+-- 12637533
 
 -- consider only not corrupted sha1 in sesi not already present in swh
 create materialized view content_sesi_not_in_swh
@@ -73,6 +74,7 @@ as select sha1
     and not exists (select 1
                     from content as swh
                     where sesi.sha1 = swh.sha1);
+-- 190139056
 
 -- estimates of files with size >= 100Mib
 select sum(length)
@@ -87,7 +89,15 @@ from content_sesi;
 -- 5659069799 b = 5.2704194551333785 Gib
 
 --
--- obsolete now
+-- First computation
+--
+
+create materialized view content_sesi_old_not_in_s3
+as select sha1
+   from content_sesi_ante_drama sesi
+   where not exists (select 1
+                     from content_s3 s3
+                     where sesi.sha1 = s3.sha1);
 --
 
 -- Create content present on s3 and not on sesi (could be present in
@@ -98,7 +108,7 @@ as select sha1, path
     where not exists (select 1
                       from content_sesi_ante_drama as sesi
                       where s3.sha1 = sesi.sha1);
-      -- 741797
+-- 741797
 
 create materialized view content_s3_not_in_sesi_nor_in_swh_old
 as select sha1, path
@@ -106,7 +116,7 @@ as select sha1, path
     where not exists (select 1
                       from content as swh
                       where s3.sha1 = swh.sha1);
-    -- 46
+-- 46
 
 create materialized view content_sesi_not_in_swh_old
 as select sha1
@@ -114,4 +124,4 @@ as select sha1
     where not exists (select 1
                       from content as swh
                       where sesi.sha1 = swh.sha1);
-    -- 207095510
+-- 207095510
