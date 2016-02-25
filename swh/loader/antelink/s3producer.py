@@ -21,7 +21,6 @@ if __name__ == '__main__':
     else:
         limit = None
 
-    # instantiate celery app with its configuration
     from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
 
