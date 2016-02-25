@@ -15,7 +15,7 @@ def list_files(db_url, limit=None):
 
 
 if __name__ == '__main__':
-    largv = sys.argv
+    largv = len(sys.argv)
     db_url = "%s" % sys.argv[1]
     if largv > 2:
         block_size = int(sys.argv[2])
