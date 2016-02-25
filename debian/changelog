@@ -1,5 +1,5 @@
-<module-name> (0.0.1-1) unstable; urgency=low
+swh-loader-antelink (0.0.1-1) unstable; urgency=low
 
-  *
+  [ Antoine R. Dumont ]
 
- -- AUTHOR-NAME <AUTHOR-EMAIL>  <UTC-DATE>
+ -- Antoine R. Dumont (@ardumont) <antoine.romain.dumont@gmail.com> Thu Feb 25 2016 13:56:32 +0100
