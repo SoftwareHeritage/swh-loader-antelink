@@ -53,37 +53,36 @@ class AntelinkS3Downloader(config.SWHConfig):
             'swh.antelink.loader.AntelinkS3Downloader')
 
     def process(self, dirpath):
-        full_dest_path = self.config['destination_path'] + dirpath
+        localpath = self.config['destination_path'] + os.path.basename(dirpath)
         s3path = self.config['bucket'] + dirpath
 
         if DRY_RUN:
             self.log.warn('%s -> %s downloaded (dry run)!' %
-                          (s3path, full_dest_path))
+                          (s3path, localpath))
             return
 
-        if os.path.exists(full_dest_path):
-            self.log.warn('%s exists!' % full_dest_path)
+        if os.path.exists(localpath):
+            self.log.warn('%s exists!' % localpath)
         else:
-            download_s3_file(s3path, full_dest_path)
-
-        parent_path = os.path.dirname(full_dest_path)
-        os.makedirs(parent_path, exist_ok=True)
+            download_s3_file(s3path, localpath)
 
         try:
-            data = utils.to_content(full_dest_path, log=self.log)
+            self.log.info('%s -> %s' % (s3path, localpath))
+            data = utils.to_content(localpath, log=self.log)
 
             # Check for corruption on sha1
-            origin_sha1 = utils.sha1_from_path(full_dest_path)
+            origin_sha1 = utils.sha1_from_path(localpath)
             sha1 = hashutil.hash_to_hex(data['sha1'])
             if origin_sha1 != sha1:
                 self.log.warn('(%s, %s) corrupted! %s != %s! Skipped' %
-                              (s3path, full_dest_path, origin_sha1, sha1))
+                              (s3path, localpath, origin_sha1, sha1))
                 return
 
+            self.log.info('%s -> swh' % sha1)
             self.storage.content_add([data])
         except Exception as e:
             self.log.error('Problem during retrieval of %s: %s' %
-                           (full_dest_path, e))
+                           (localpath, e))
         finally:
-            if os.path.exists(full_dest_path):
-                os.remove(full_dest_path)
+            if os.path.exists(localpath):
+                os.remove(localpath)

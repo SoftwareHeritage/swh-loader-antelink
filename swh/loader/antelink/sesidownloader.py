@@ -65,7 +65,7 @@ class AntelinkSesiDownloader(config.SWHConfig):
                 origin_sha1 = utils.sha1_from_path(local_path)
                 sha1 = hashutil.hash_to_hex(data['sha1'])
                 if origin_sha1 != sha1:
-                    self.log.warn('%s corrupted! %s != %s! Skipped' %
+                    self.log.warn('%s corrupted - %s != %s. Skipping!' %
                                   (local_path, origin_sha1, sha1))
                     return
 
