@@ -52,39 +52,38 @@ class AntelinkSesiDownloader(config.SWHConfig):
             'swh.antelink.loader.AntelinkSesiDownloader')
 
     def process_paths(self, paths):
-        # Retrieve the list of files
-        for local_path in paths:
-            if not os.path.exists(local_path):
-                self.log.warn('%s does not exist!' % local_path)
-                return
+        for localpath in paths:
+            if not os.path.exists(localpath):
+                self.log.warn('%s does not exist!' % localpath)
+                continue
 
             try:
-                data = utils.to_content(local_path, log=self.log)
+                data = utils.to_content(localpath, log=self.log)
 
                 # Check for corruption on sha1
-                origin_sha1 = utils.sha1_from_path(local_path)
+                origin_sha1 = utils.sha1_from_path(localpath)
                 sha1 = hashutil.hash_to_hex(data['sha1'])
                 if origin_sha1 != sha1:
                     self.log.warn('%s corrupted - %s != %s. Skipping!' %
-                                  (local_path, origin_sha1, sha1))
-                    return
+                                  (localpath, origin_sha1, sha1))
+                    continue
 
                 self.log.info('%s -> swh' % sha1)
                 yield data
             except Exception as e:
-                self.log.error('Problem with %s: %s' %
-                               (local_path, e))
+                self.log.error('Problem during computation of %s: %s' %
+                               (localpath, e))
             finally:
-                if os.path.exists(local_path):
-                    os.remove(local_path)
+                if os.path.exists(localpath):
+                    os.remove(localpath)
 
     def process(self, paths):
         # Retrieve the data from sesi first
-        local_paths = retrieve_sesi_files(self.config['host'],
-                                          paths,
-                                          self.config['destination_path'])
+        localpaths = retrieve_sesi_files(self.config['host'],
+                                         paths,
+                                         self.config['destination_path'])
 
         # Then process them and store in swh
-        data = self.process_paths(local_paths)
+        data = self.process_paths(localpaths)
         if data:
             self.storage.content_add(data)
