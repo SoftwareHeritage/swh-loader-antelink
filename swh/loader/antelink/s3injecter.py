@@ -6,15 +6,11 @@
 
 import logging
 import os
-import subprocess
 
 from swh.core import config, hashutil
 from swh.storage import get_storage
 
 from swh.loader.antelink import utils
-
-
-DRY_RUN = False
 
 
 class AntelinkS3Injecter(config.SWHConfig):
@@ -65,7 +61,6 @@ class AntelinkS3Injecter(config.SWHConfig):
             finally:
                 if os.path.exists(localpath):
                     os.remove(localpath)
-
 
     def process(self, paths):
         # Then process them and store in swh

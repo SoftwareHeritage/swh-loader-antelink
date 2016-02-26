@@ -5,6 +5,7 @@
 
 import sys
 
+from swh.loader.antelink import utils
 from swh.loader.antelink.db import Db
 
 
@@ -17,15 +18,23 @@ def list_s3_files(db_url, limit=None):
 
 
 if __name__ == '__main__':
+    largv = len(sys.argv)
     db_url = "%s" % sys.argv[1]
-    if len(sys.argv) > 2:
-        limit = int(sys.argv[2])
+    if largv > 2:
+        block_size = int(sys.argv[2])
+    else:
+        block_size = 1000
+
+    if largv > 3:
+        limit = int(sys.argv[3])
     else:
         limit = None
 
     from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
 
-    for path in list_s3_files(db_url, limit):
-        app.tasks['swh.loader.antelink.tasks.AntelinkS3DownloaderTsk'].delay(
-            path)
+    genpaths = utils.grouper(list_s3_files(db_url, limit),
+                             block_size, fillvalue=None)
+    for paths in genpaths:
+        app.tasks['swh.loader.antelink.tasks.AntelinkS3InjecterTsk'].delay(
+            list(p for p in paths if p))

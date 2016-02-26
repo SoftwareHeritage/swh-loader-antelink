@@ -4,18 +4,19 @@
 # See top-level LICENSE file for more information
 
 from swh.loader.antelink.s3downloader import AntelinkS3Downloader
+from swh.loader.antelink.s3injecter import AntelinkS3Injecter
 from swh.loader.antelink.sesidownloader import AntelinkSesiDownloader
 
 from swh.scheduler.task import Task
 
 
-class DownloadS3AntelinkFile(Task):
+class AntelinkS3DownloaderTsk(Task):
     """Download an s3 antelink file.
 
     """
-    task_queue = 'swh_s3_antelink_downloader'
+    task_queue = 'swh_antelink_s3_downloader'
 
-    CONFIG_BASE_FILENAME = 'downloader/antelink-s3.ini'
+    CONFIG_BASE_FILENAME = 'antelink/s3-downloader.ini'
     ADDITIONAL_CONFIG = {}
 
     def __init__(self):
@@ -36,17 +37,44 @@ class DownloadS3AntelinkFile(Task):
         s3downloader.process(s3dirpath)
 
 
-class DownloadSesiAntelinkFiles(Task):
-    """Download antelink file from sesi machine.
+class AntelinkS3InjecterTsk(Task):
+    """Inject an s3 antelink file.
 
     """
-    task_queue = 'swh_sesi_antelink_downloader'
+    task_queue = 'swh_antelink_s3_injecter'
 
-    CONFIG_BASE_FILENAME = 'downloader/antelink-sesi.ini'
+    CONFIG_BASE_FILENAME = 'antelink/s3-injecter.ini'
     ADDITIONAL_CONFIG = {}
 
     def __init__(self):
-        self.config = AntelinkS3Downloader.parse_config_file(
+        self.config = AntelinkS3Injecter.parse_config_file(
+            base_filename=self.CONFIG_BASE_FILENAME,
+            additional_configs=[self.ADDITIONAL_CONFIG],
+        )
+
+    def run(self, s3dirpath):
+        """Import a s3 directory path.
+
+        Args:
+            cf. swh.loader.antelink.s3injecter.process docstring
+
+        """
+        s3inj = AntelinkS3Injecter(self.config)
+        s3inj.log = self.log
+        s3inj.process(s3dirpath)
+
+
+class AntelinkSesiInjecterTsk(Task):
+    """Download antelink file from sesi machine.
+
+    """
+    task_queue = 'swh_antelink_sesi_downloader'
+
+    CONFIG_BASE_FILENAME = 'antelink/sesi.ini'
+    ADDITIONAL_CONFIG = {}
+
+    def __init__(self):
+        self.config = AntelinkSesiDownloader.parse_config_file(
             base_filename=self.CONFIG_BASE_FILENAME,
             additional_configs=[self.ADDITIONAL_CONFIG],
         )
