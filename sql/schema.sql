@@ -76,6 +76,12 @@ as select sha1
                     where sesi.sha1 = swh.sha1);
 -- 190139056
 
+SELECT sum(s3.length)
+FROM content_s3_not_in_sesi_nor_in_swh s3_not
+INNER JOIN content_s3 s3
+on s3_not.sha1 = s3.sha1;
+-- 13594449732809 -> ~12.364080005508185 Tib
+
 -- estimates of files with size >= 100Mib
 select sum(length)
 from content_sesi
