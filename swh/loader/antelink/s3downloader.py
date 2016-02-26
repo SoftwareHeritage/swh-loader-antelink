@@ -6,15 +6,14 @@
 
 import logging
 import os
-import subprocess
+import boto3
 
 from swh.core import config
 
 
-def download_s3_file(s3path, path):
+def download_file(bucket, s3path, path):
     """Download the s3path file to path."""
-    cmd = ['aws', 's3', 'cp', s3path, path]
-    subprocess.check_output(cmd, universal_newlines=True)
+    bucket.download_file(s3path, path)
 
 
 class AntelinkS3Downloader(config.SWHConfig):
@@ -22,7 +21,7 @@ class AntelinkS3Downloader(config.SWHConfig):
 
     """
     DEFAULT_CONFIG = {
-        'bucket': ('string', 's3://antelink-object-storage'),
+        'bucket': ('string', 'antelink-object-storage'),
         'destination_path': ('string', '/home/storage/antelink/s3/'),
     }
 
@@ -34,22 +33,29 @@ class AntelinkS3Downloader(config.SWHConfig):
             self.config['destination_path'] = dest_path + '/'
 
         s3path = self.config['bucket']
-        if not s3path.endswith('/'):
-            self.config['bucket'] = s3path + '/'
+        if s3path.endswith('/'):
+            self.config['bucket'] = s3path.rstrip('/')
 
         self.log = logging.getLogger(
             'swh.antelink.loader.AntelinkS3Downloader')
 
-    def process(self, dirpath):
-        localpath = self.config['destination_path'] + dirpath
-        s3path = self.config['bucket'] + dirpath
+    def process(self, paths):
+        s3 = boto3.resource('s3')
+        bucket = s3.Bucket(self.config['bucket'])
 
-        try:
-            if os.path.exists(localpath):
-                self.log.warn('%s exists!' % localpath)
-            else:
-                self.log.info('%s -> %s' % (s3path, localpath))
-                download_s3_file(s3path, localpath)
-        except Exception as e:
-            self.log.error('Problem during retrieval of %s: %s' %
-                           (localpath, e))
+        for s3path in paths:
+            # expects no prefix / in s3path
+            localpath = self.config['destination_path'] + s3path
+
+            try:
+                if os.path.exists(localpath):
+                    self.log.warn('%s exists! Skipping.' % localpath)
+                    continue
+                else:
+                    self.log.info('%s -> %s' % (s3path, localpath))
+                    os.makedirs(os.path.dirname(localpath), exist_ok=True)
+                    bucket.download_file(s3path, localpath)
+
+            except Exception as e:
+                self.log.error('Problem during retrieval of %s: %s' %
+                               (localpath, e))
