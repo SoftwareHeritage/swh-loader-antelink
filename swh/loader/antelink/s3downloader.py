@@ -9,7 +9,6 @@ import os
 import subprocess
 
 from swh.core import config
-from swh.storage import get_storage
 
 
 def download_s3_file(s3path, path):
@@ -23,8 +22,6 @@ class AntelinkS3Downloader(config.SWHConfig):
 
     """
     DEFAULT_CONFIG = {
-        'storage_class': ('str', 'remote_storage'),
-        'storage_args': ('list[str]', ['http://localhost:5000/']),
         'bucket': ('string', 's3://antelink-object-storage'),
         'destination_path': ('string', '/home/storage/antelink/s3/'),
     }
@@ -39,9 +36,6 @@ class AntelinkS3Downloader(config.SWHConfig):
         s3path = self.config['bucket']
         if not s3path.endswith('/'):
             self.config['bucket'] = s3path + '/'
-
-        self.storage = get_storage(config['storage_class'],
-                                   config['storage_args'])
 
         self.log = logging.getLogger(
             'swh.antelink.loader.AntelinkS3Downloader')
