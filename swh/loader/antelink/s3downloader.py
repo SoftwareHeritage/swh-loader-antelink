@@ -8,6 +8,7 @@ import logging
 import os
 import boto3
 
+from boto3.s3.transfer import TransferConfig
 from swh.core import config
 
 
@@ -43,6 +44,11 @@ class AntelinkS3Downloader(config.SWHConfig):
         s3 = boto3.resource('s3')
         bucket = s3.Bucket(self.config['bucket'])
 
+        config = TransferConfig(
+            max_concurrency=1,
+            num_download_attempts=3,
+        )
+
         for s3path in paths:
             # expects no prefix / in s3path
             localpath = self.config['destination_path'] + s3path
@@ -54,7 +60,7 @@ class AntelinkS3Downloader(config.SWHConfig):
                 else:
                     self.log.info('%s -> %s' % (s3path, localpath))
                     os.makedirs(os.path.dirname(localpath), exist_ok=True)
-                    bucket.download_file(s3path, localpath)
+                    bucket.download_file(s3path, localpath, Config=config)
 
             except Exception as e:
                 self.log.error('Problem during retrieval of %s: %s' %
