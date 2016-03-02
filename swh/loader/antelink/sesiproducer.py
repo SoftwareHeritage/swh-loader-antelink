@@ -22,8 +22,10 @@ def list_files(db_url, limit=None):
 @click.option('--db-url', default='service=swh-antelink', help='Db access')
 @click.option('--block-size', default=104857600,
               help='Default block size in bytes (100Mib).')
+@click.option('--block-max-files', default=1000,
+              help='Default max number of files (default: 1000).')
 @click.option('--limit', default=None, help='Limit data to fetch.')
-def compute_sesi_jobs(db_url, block_size, limit):
+def compute_sesi_jobs(db_url, block_size, block_max_files, limit):
     """Compute the paths to retrieve from sesi and inject in swh.
 
     It will compute ~block_size (bytes) of files (paths) to retrieve
@@ -35,25 +37,27 @@ def compute_sesi_jobs(db_url, block_size, limit):
 
     accu_size = 0
     paths = []
-    nb_blocks = 0
+    nb_total_blocks = 0
+    nb_files = 0
     for path, length in list_files(db_url, limit):
         accu_size += length
         paths.append(path)
+        nb_files += 1
 
-        if accu_size >= block_size:
-            nb_blocks += 1
+        if accu_size >= block_size or nb_files >= block_max_files:
+            nb_total_blocks += 1
             app.tasks[task_name].delay(paths)
-            print('%s paths (%s bytes) sent.' % (len(paths), accu_size))
+            print('%s paths (%s bytes) sent.' % (nb_files, accu_size))
             paths = []
             accu_size = 0
+            nb_files = 0
 
     # if remaining paths
     if accu_size > 0 or paths:
         app.tasks[task_name].delay(paths)
-        nb_blocks += 1
         print('%s remaining paths (%s bytes) sent.' % (len(paths), accu_size))
 
-    print('Number of jobs: %s' % nb_blocks)
+    print('Number of jobs: %s' % nb_total_blocks)
 
 if __name__ == '__main__':
     compute_sesi_jobs()
