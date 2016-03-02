@@ -3,7 +3,7 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
-import sys
+import click
 
 from swh.loader.antelink import utils
 from swh.loader.antelink.db import Db
@@ -16,19 +16,11 @@ def list_files(db_url, limit=None):
             yield path[0]
 
 
-if __name__ == '__main__':
-    largv = len(sys.argv)
-    db_url = "%s" % sys.argv[1]
-    if largv > 2:
-        block_size = int(sys.argv[2])
-    else:
-        block_size = 1000
-
-    if largv > 3:
-        limit = int(sys.argv[3])
-    else:
-        limit = None
-
+@click.command()
+@click.option('--db-url', default='service=swh-antelink', help='Db access')
+@click.option('--block-size', default=1000, help='Default block size to use.')
+@click.option('--limit', default=None, help='Limit data to fetch.')
+def compute_sesi_jobs(db_url, block_size, limit):
     from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
 
@@ -37,3 +29,7 @@ if __name__ == '__main__':
     for paths in genpaths:
         app.tasks['swh.loader.antelink.tasks.AntelinkSesiInjecterTsk'].delay(
             list(p for p in paths if p))
+
+
+if __name__ == '__main__':
+    compute_sesi_jobs()
