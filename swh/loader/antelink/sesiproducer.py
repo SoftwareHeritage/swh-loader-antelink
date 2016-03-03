@@ -18,13 +18,6 @@ def list_files(db_url, limit=None):
             yield path[0], path[1]
 
 
-@click.command()
-@click.option('--db-url', default='service=swh-antelink', help='Db access')
-@click.option('--block-size', default=104857600,
-              help='Default block size in bytes (100Mib).')
-@click.option('--block-max-files', default=1000,
-              help='Default max number of files (default: 1000).')
-@click.option('--limit', default=None, help='Limit data to fetch.')
 def compute_sesi_jobs(db_url, block_size, block_max_files, limit):
     """Compute the paths to retrieve from sesi and inject in swh.
 
@@ -32,12 +25,8 @@ def compute_sesi_jobs(db_url, block_size, block_max_files, limit):
     and send it to the queue for workers to download and inject in swh.
 
     """
-    from swh.scheduler.celery_backend.config import app
-    from swh.loader.antelink import tasks  # noqa
-
     accu_size = 0
     paths = []
-    nb_total_blocks = 0
     nb_files = 0
     for path, length in list_files(db_url, limit):
         accu_size += length
@@ -45,19 +34,36 @@ def compute_sesi_jobs(db_url, block_size, block_max_files, limit):
         nb_files += 1
 
         if accu_size >= block_size or nb_files >= block_max_files:
-            nb_total_blocks += 1
-            app.tasks[task_name].delay(paths)
-            print('%s paths (%s bytes) sent.' % (nb_files, accu_size))
+            yield paths, accu_size
             paths = []
             accu_size = 0
             nb_files = 0
 
     # if remaining paths
     if accu_size > 0 or paths:
+        yield paths, accu_size
+
+
+@click.command()
+@click.option('--db-url', default='service=swh-antelink', help='Db access')
+@click.option('--block-size', default=104857600,
+              help='Default block size in bytes (100Mib).')
+@click.option('--block-max-files', default=1000,
+              help='Default max number of files (default: 1000).')
+@click.option('--limit', default=None, help='Limit data to fetch.')
+def send_jobs(db_url, block_size, block_max_files, limit):
+    from swh.scheduler.celery_backend.config import app
+    from swh.loader.antelink import tasks  # noqa
+
+    nb_total_blocks = 0
+    for paths, size in compute_sesi_jobs(db_url, block_size, block_max_files,
+                                         limit):
+        nb_total_blocks += 1
+        print('%s paths (%s bytes) sent.' % (len(paths), size))
         app.tasks[task_name].delay(paths)
-        print('%s remaining paths (%s bytes) sent.' % (len(paths), accu_size))
 
     print('Number of jobs: %s' % nb_total_blocks)
 
+
 if __name__ == '__main__':
-    compute_sesi_jobs()
+    send_jobs()
