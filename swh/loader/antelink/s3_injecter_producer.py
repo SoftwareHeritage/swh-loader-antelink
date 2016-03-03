@@ -5,16 +5,7 @@
 
 import click
 
-from swh.loader.antelink import utils
-from swh.loader.antelink.db import Db
-
-
-def list_s3_files(db_url, limit=None):
-    db = Db.connect(db_url)
-    with db.transaction() as cur:
-        for path in db.read_content_s3_not_in_sesi_nor_in_swh(limit=limit,
-                                                              cur=cur):
-            yield path[0]
+from swh.loader.antelink import utils, storage
 
 
 @click.command()
@@ -25,9 +16,9 @@ def compute_s3_jobs(db_url, block_size, limit):
     from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
 
-    genpaths = utils.grouper(list_s3_files(db_url, limit),
-                             block_size, fillvalue=None)
-    for paths in genpaths:
+    store = storage.Storage(db_url)
+    files_gen = store.read_content_s3_not_in_sesi_nor_in_swh(limit)
+    for paths in utils.grouper(files_gen, block_size, fillvalue=None):
         app.tasks['swh.loader.antelink.tasks.AntelinkS3InjecterTsk'].delay(
             list(p for p in paths if p))
 

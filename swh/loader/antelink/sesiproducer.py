@@ -5,17 +5,9 @@
 
 import click
 
-from swh.loader.antelink.db import Db
-
+from swh.loader.antelink import storage
 
 task_name = 'swh.loader.antelink.tasks.AntelinkSesiInjecterTsk'
-
-
-def list_files(db_url, limit=None):
-    db = Db.connect(db_url)
-    with db.transaction() as cur:
-        for path in db.read_content_sesi_not_in_swh(limit=limit, cur=cur):
-            yield path[0], path[1]
 
 
 def compute_sesi_jobs(db_url, block_size, block_max_files, limit):
@@ -28,7 +20,8 @@ def compute_sesi_jobs(db_url, block_size, block_max_files, limit):
     accu_size = 0
     paths = []
     nb_files = 0
-    for path, length in list_files(db_url, limit):
+    store = storage.Storage(db_url)
+    for path, length in store.read_content_sesi_not_in_swh(limit):
         accu_size += length
         paths.append(path)
         nb_files += 1
@@ -52,6 +45,9 @@ def compute_sesi_jobs(db_url, block_size, block_max_files, limit):
               help='Default max number of files (default: 1000).')
 @click.option('--limit', default=None, help='Limit data to fetch.')
 def send_jobs(db_url, block_size, block_max_files, limit):
+    """Send paths for worker to retrieve from sesi machine.
+
+    """
     from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
 
