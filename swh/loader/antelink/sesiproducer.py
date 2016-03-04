@@ -44,7 +44,8 @@ def compute_sesi_jobs(db_url, block_size, block_max_files, limit):
 @click.option('--block-max-files', default=1000,
               help='Default max number of files (default: 1000).')
 @click.option('--limit', default=None, help='Limit data to fetch.')
-def send_jobs(db_url, block_size, block_max_files, limit):
+@click.option('--dry-run', is_flag=True, help='Dry run.')
+def send_jobs(db_url, block_size, block_max_files, limit, dry_run):
     """Send paths for worker to retrieve from sesi machine.
 
     """
@@ -56,6 +57,8 @@ def send_jobs(db_url, block_size, block_max_files, limit):
                                          limit):
         nb_total_blocks += 1
         print('%s paths (%s bytes) sent.' % (len(paths), size))
+        if dry_run:
+            continue
         app.tasks[task_name].delay(paths)
 
     print('Number of jobs: %s' % nb_total_blocks)
