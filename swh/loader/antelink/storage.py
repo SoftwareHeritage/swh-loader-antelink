@@ -40,8 +40,8 @@ class Storage():
 
         """
         db = self.db
-        for tuple in db.read_content_sesi_not_in_swh(limit, cur):
-            yield tuple[0]
+        for t in db.read_content_sesi_not_in_swh(limit, cur):
+            yield t[0]
 
     @db_transaction_generator
     def read_content_sesi_not_in_swh(self, limit=None, cur=None):
@@ -49,5 +49,5 @@ class Storage():
 
         """
         db = self.db
-        for tuple in db.read_content_sesi_not_in_swh(limit, cur):
-            yield tuple[0], tuple[1]
+        for t in db.read_content_sesi_not_in_swh(limit, cur):
+            yield t[0], t[1]
