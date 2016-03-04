@@ -39,9 +39,9 @@ def compute_sesi_jobs(db_url, block_size, block_max_files, limit):
 
 @click.command()
 @click.option('--db-url', default='service=swh-antelink', help='Db access')
-@click.option('--block-size', default=104857600,
+@click.option('--block-size', default='104857600',
               help='Default block size in bytes (100Mib).')
-@click.option('--block-max-files', default=1000,
+@click.option('--block-max-files', default='1000',
               help='Default max number of files (default: 1000).')
 @click.option('--limit', default=None, help='Limit data to fetch.')
 @click.option('--dry-run', is_flag=True, help='Dry run.')
@@ -51,6 +51,11 @@ def send_jobs(db_url, block_size, block_max_files, limit, dry_run):
     """
     from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
+
+    block_size = int(block_size)
+    block_max_files = int(block_max_files)
+    if limit:
+        limit = int(limit)
 
     nb_total_blocks = 0
     for paths, size in compute_sesi_jobs(db_url, block_size, block_max_files,
