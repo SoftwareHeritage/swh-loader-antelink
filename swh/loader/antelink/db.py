@@ -164,10 +164,23 @@ class Db:
 
         """
         cur = self._cursor(cur)
-        q = """SELECT s3.path
+        q = """SELECT path
                FROM content_s3_not_in_sesi_nor_in_swh s3_not
-               INNER JOIN content_s3 s3
-                 on s3_not.sha1 = s3.sha1
+               INNER JOIN content_s3 using(sha1)
+            """ + (
+            " LIMIT %s" % limit if limit else "")
+        cur.execute(q)
+        yield from cursor_to_bytes(cur)
+
+    def read_content_s3_not_in_sesi_nor_in_swh_final(self,
+                                                     limit=None, cur=None):
+        """Retrieve paths to retrieve from s3.
+
+        """
+        cur = self._cursor(cur)
+        q = """SELECT path
+               FROM content_s3_not_in_sesi_nor_in_swh_final s3_not
+               INNER JOIN content_s3 using (sha1)
             """ + (
             " LIMIT %s" % limit if limit else "")
         cur.execute(q)

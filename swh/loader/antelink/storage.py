@@ -44,6 +44,16 @@ class Storage():
             yield t[0]
 
     @db_transaction_generator
+    def read_content_s3_not_in_sesi_nor_in_swh_final(self,
+                                                     limit=None, cur=None):
+        """Retrieve paths to retrieve from s3.
+
+        """
+        db = self.db
+        for t in db.read_content_s3_not_in_sesi_nor_in_swh_final(limit, cur):
+            yield t[0]
+
+    @db_transaction_generator
     def read_content_sesi_not_in_swh(self, limit=None, cur=None):
         """Retrieve paths to retrieve from sesi.
 
