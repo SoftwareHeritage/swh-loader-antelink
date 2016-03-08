@@ -53,14 +53,11 @@ class AntelinkS3Injecter(config.SWHConfig):
                                   (localpath, origin_sha1, sha1))
                     continue
 
-                self.log.info('%s -> swh' % sha1)
+                self.log.info('s3 %s -> swh' % sha1)
                 yield data
             except Exception as e:
                 self.log.error('Problem during computation of %s: %s' %
                                (localpath, e))
-            finally:
-                if os.path.exists(localpath):
-                    os.remove(localpath)
 
     def process(self, paths):
         # Then process them and store in swh
