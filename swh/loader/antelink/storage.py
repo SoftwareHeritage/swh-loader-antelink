@@ -40,7 +40,7 @@ class Storage():
 
         """
         db = self.db
-        for t in db.read_content_sesi_not_in_swh(limit, cur):
+        for t in db.read_content_s3_not_in_sesi_nor_in_swh(limit, cur):
             yield t[0]
 
     @db_transaction_generator
