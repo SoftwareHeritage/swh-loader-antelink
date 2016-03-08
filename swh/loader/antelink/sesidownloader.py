@@ -6,24 +6,11 @@
 
 import logging
 import os
-import subprocess
 
 from swh.core import config, hashutil
 from swh.storage import get_storage
 
 from swh.loader.antelink import utils
-
-
-def retrieve_sesi_files(host, sesi_paths, destination_path):
-    """Download the sesi_paths files to destination path.
-
-    """
-    spaths = (host + ':' + p for p in sesi_paths)
-    cmd = ['scp'] + list(spaths) + [destination_path]
-    subprocess.check_call(cmd)
-    for path in sesi_paths:
-        yield os.path.sep.join([destination_path.rstrip('/'),
-                                os.path.basename(path)])
 
 
 class AntelinkSesiDownloader(config.SWHConfig):
@@ -33,17 +20,10 @@ class AntelinkSesiDownloader(config.SWHConfig):
     DEFAULT_CONFIG = {
         'storage_class': ('str', 'remote_storage'),
         'storage_args': ('list[str]', ['http://localhost:5000/']),
-        'host': ('string', 'sesi-pv-lc2.inria.fr'),
-        'destination_path': ('string',
-                             '/srv/storage/space/antelink/inject-checksums/'),
     }
 
     def __init__(self, config):
         self.config = config
-
-        dest_path = self.config['destination_path']
-        if not dest_path.endswith('/'):
-            self.config['destination_path'] = dest_path + '/'
 
         self.storage = get_storage(config['storage_class'],
                                    config['storage_args'])
@@ -73,17 +53,9 @@ class AntelinkSesiDownloader(config.SWHConfig):
             except Exception as e:
                 self.log.error('Problem during computation of %s: %s' %
                                (localpath, e))
-            finally:
-                if os.path.exists(localpath):
-                    os.remove(localpath)
 
     def process(self, paths):
-        # Retrieve the data from sesi first
-        localpaths = retrieve_sesi_files(self.config['host'],
-                                         paths,
-                                         self.config['destination_path'])
-
         # Then process them and store in swh
-        data = self.process_paths(localpaths)
+        data = self.process_paths(paths)
         if data:
             self.storage.content_add(data)
