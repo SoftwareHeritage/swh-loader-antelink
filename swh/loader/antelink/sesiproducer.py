@@ -84,7 +84,7 @@ def send_jobs(db_url, block_size, block_max_files, limit, dry_run):
         block_size = int(block_size)
     if isinstance(block_max_files, str):
         block_max_files = int(block_max_files)
-    if limit and isinstance(limit, 'str'):
+    if limit and isinstance(limit, str):
         limit = int(limit)
     if dry_run:
         print('** DRY RUN **')
