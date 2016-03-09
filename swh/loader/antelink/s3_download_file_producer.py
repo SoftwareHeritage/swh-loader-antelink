@@ -23,9 +23,9 @@ def compute_s3_files(db_url, block_size, limit, final):
     else:
         files_gen = store.read_content_s3_not_in_sesi_nor_in_swh(limit)
 
-    for paths in utils.grouper(files_gen, block_size, fillvalue=None):
+    for paths in utils.split_data(files_gen, block_size):
         app.tasks['swh.loader.antelink.tasks.AntelinkS3DownloaderTsk'].delay(
-            list(p for p in paths if p))
+            list(paths))
 
 
 if __name__ == '__main__':
