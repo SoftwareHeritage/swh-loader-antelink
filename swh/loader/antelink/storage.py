@@ -41,7 +41,7 @@ class Storage():
         """
         db = self.db
         for t in db.read_content_s3_not_in_sesi_nor_in_swh(limit, cur):
-            yield t[0]
+            yield t[0], t[1]
 
     @db_transaction_generator
     def read_content_s3_not_in_sesi_nor_in_swh_final(self,
@@ -51,7 +51,7 @@ class Storage():
         """
         db = self.db
         for t in db.read_content_s3_not_in_sesi_nor_in_swh_final(limit, cur):
-            yield t[0]
+            yield t[0], t[1]
 
     @db_transaction_generator
     def read_content_sesi_not_in_swh(self, limit=None, cur=None):

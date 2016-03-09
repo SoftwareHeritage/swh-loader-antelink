@@ -164,9 +164,10 @@ class Db:
 
         """
         cur = self._cursor(cur)
-        q = """SELECT path
+        q = """SELECT path, length
                FROM content_s3_not_in_sesi_nor_in_swh s3_not
-               INNER JOIN content_s3 using(sha1)
+               INNER JOIN content_s3 s3 using(sha1)
+               WHERE s3.length < 104857600
             """ + (
             " LIMIT %s" % limit if limit else "")
         cur.execute(q)
@@ -178,9 +179,10 @@ class Db:
 
         """
         cur = self._cursor(cur)
-        q = """SELECT path
+        q = """SELECT path, length
                FROM content_s3_not_in_sesi_nor_in_swh_final s3_not
-               INNER JOIN content_s3 using (sha1)
+               INNER JOIN content_s3 s3 using (sha1)
+               WHERE s3.length < 104857600
             """ + (
             " LIMIT %s" % limit if limit else "")
         cur.execute(q)

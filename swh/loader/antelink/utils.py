@@ -116,3 +116,30 @@ def to_content(path, log=None):
     data = compute_hash(path, with_data=True)
     data['update'] = 'visible'
     return data
+
+
+def split_data_per_size(gen_data, block_size, block_max_files):
+    """Compute the paths to retrieve from sesi and inject in swh.
+
+    It will compute ~block_size (bytes) of files (paths) to retrieve
+    and send it to the queue for workers to download and inject in swh.
+
+    """
+    accu_size = 0
+    paths = []
+    nb_files = 0
+
+    for path, length in gen_data:
+        accu_size += length
+        paths.append(path)
+        nb_files += 1
+
+        if accu_size >= block_size or nb_files >= block_max_files:
+            yield paths, accu_size
+            paths = []
+            accu_size = 0
+            nb_files = 0
+
+    # if remaining paths
+    if accu_size > 0 or paths:
+        yield paths, accu_size

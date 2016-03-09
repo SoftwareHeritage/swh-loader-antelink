@@ -6,7 +6,8 @@
 import click
 import sys
 
-from swh.loader.antelink import storage
+from swh.loader.antelink import storage, utils
+
 
 task_name = 'swh.loader.antelink.tasks.AntelinkSesiInjecterTsk'
 
@@ -33,33 +34,6 @@ def gen_path_length_from_stdin():
         line = line.rstrip()
         data = line.split(' ')
         yield data[0], int(data[1])
-
-
-def split_data_per_jobs(gen_data, block_size, block_max_files):
-    """Compute the paths to retrieve from sesi and inject in swh.
-
-    It will compute ~block_size (bytes) of files (paths) to retrieve
-    and send it to the queue for workers to download and inject in swh.
-
-    """
-    accu_size = 0
-    paths = []
-    nb_files = 0
-
-    for path, length in gen_data:
-        accu_size += length
-        paths.append(path)
-        nb_files += 1
-
-        if accu_size >= block_size or nb_files >= block_max_files:
-            yield paths, accu_size
-            paths = []
-            accu_size = 0
-            nb_files = 0
-
-    # if remaining paths
-    if accu_size > 0 or paths:
-        yield paths, accu_size
 
 
 @click.command()
@@ -95,8 +69,8 @@ def send_jobs(db_url, block_size, block_max_files, limit, dry_run):
         gen_data = gen_path_length_from_stdin()
 
     nb_total_blocks = 0
-    for paths, size in split_data_per_jobs(gen_data, block_size,
-                                           block_max_files):
+    for paths, size in utils.split_data_per_size(gen_data, block_size,
+                                                 block_max_files):
         nb_total_blocks += 1
         print('%s paths (%s bytes) sent.' % (len(paths), size))
         if dry_run:
