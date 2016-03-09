@@ -61,3 +61,12 @@ class Storage():
         db = self.db
         for t in db.read_content_sesi_not_in_swh(limit, cur):
             yield t[0], t[1]
+
+    @db_transaction_generator
+    def read_content_sesi_not_in_swh_huge(self, limit=None, cur=None):
+        """Retrieve paths to retrieve from sesi.
+
+        """
+        db = self.db
+        for t in db.read_content_sesi_not_in_swh_huge(limit, cur):
+            yield t[0], t[1]
