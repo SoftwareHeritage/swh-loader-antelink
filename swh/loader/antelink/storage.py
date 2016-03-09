@@ -35,38 +35,37 @@ class Storage():
             raise e
 
     @db_transaction_generator
-    def read_content_s3_not_in_sesi_nor_in_swh(self, limit=None, cur=None):
+    def read_content_s3_not_in_sesi_nor_in_swh(self, huge=False, final=False,
+                                               limit=None, cur=None):
         """Retrieve paths to retrieve from s3.
 
         """
         db = self.db
-        for t in db.read_content_s3_not_in_sesi_nor_in_swh(limit, cur):
+        if huge and final:
+            gen_data = db.read_content_s3_not_in_sesi_nor_in_swh_huge_final(
+                limit, cur)
+        elif huge and not final:
+            gen_data = db.read_content_s3_not_in_sesi_nor_in_swh_huge(
+                limit, cur)
+        elif not huge and final:
+            gen_data = db.read_content_s3_not_in_sesi_nor_in_swh_final(
+                limit, cur)
+        else:
+            gen_data = db.read_content_s3_not_in_sesi_nor_in_swh(limit, cur)
+
+        for t in gen_data:
             yield t[0], t[1]
 
     @db_transaction_generator
-    def read_content_s3_not_in_sesi_nor_in_swh_final(self,
-                                                     limit=None, cur=None):
-        """Retrieve paths to retrieve from s3.
-
-        """
-        db = self.db
-        for t in db.read_content_s3_not_in_sesi_nor_in_swh_final(limit, cur):
-            yield t[0], t[1]
-
-    @db_transaction_generator
-    def read_content_sesi_not_in_swh(self, limit=None, cur=None):
+    def read_content_sesi_not_in_swh(self, huge=False, limit=None, cur=None):
         """Retrieve paths to retrieve from sesi.
 
         """
         db = self.db
-        for t in db.read_content_sesi_not_in_swh(limit, cur):
-            yield t[0], t[1]
+        if huge:
+            gen_data = db.read_content_sesi_not_in_swh_huge(limit, cur)
+        else:
+            gen_data = db.read_content_sesi_not_in_swh(limit, cur)
 
-    @db_transaction_generator
-    def read_content_sesi_not_in_swh_huge(self, limit=None, cur=None):
-        """Retrieve paths to retrieve from sesi.
-
-        """
-        db = self.db
-        for t in db.read_content_sesi_not_in_swh_huge(limit, cur):
+        for t in gen_data:
             yield t[0], t[1]

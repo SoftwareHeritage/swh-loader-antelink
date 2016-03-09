@@ -19,17 +19,15 @@ task_name = 'swh.loader.antelink.tasks.AntelinkSesiInjecterTsk'
               help='Default max number of files (default: 1000).')
 @click.option('--limit', default=None, help='Limit data to fetch.')
 @click.option('--dry-run', is_flag=True, help='Dry run.')
-@click.option('--final', is_flag=True, help='Limit data to fetch.')
+@click.option('--final', is_flag=True, help='To deal with remaining s3 files.')
+@click.option('--huge', is_flag=True, help='To deal with big files.')
 def compute_s3_jobs(db_url, block_size, block_max_files, limit, dry_run,
-                    final):
+                    final, huge):
     from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
 
     store = storage.Storage(db_url)
-    if final:
-        gen_data = store.read_content_s3_not_in_sesi_nor_in_swh_final(limit)
-    else:
-        gen_data = store.read_content_s3_not_in_sesi_nor_in_swh(limit)
+    gen_data = store.read_content_s3_not_in_sesi_nor_in_swh(huge, final, limit)
 
     # right inputs
     if isinstance(block_size, str):

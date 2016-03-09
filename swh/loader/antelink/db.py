@@ -173,6 +173,21 @@ class Db:
         cur.execute(q)
         yield from cursor_to_bytes(cur)
 
+    def read_content_s3_not_in_sesi_nor_in_swh_huge(self, limit=None,
+                                                    cur=None):
+        """Retrieve paths to retrieve from s3.
+
+        """
+        cur = self._cursor(cur)
+        q = """SELECT path, length
+               FROM content_s3_not_in_sesi_nor_in_swh s3_not
+               INNER JOIN content_s3 s3 using(sha1)
+               WHERE s3.length >= 104857600
+            """ + (
+            " LIMIT %s" % limit if limit else "")
+        cur.execute(q)
+        yield from cursor_to_bytes(cur)
+
     def read_content_s3_not_in_sesi_nor_in_swh_final(self,
                                                      limit=None, cur=None):
         """Retrieve paths to retrieve from s3.
@@ -185,6 +200,22 @@ class Db:
                WHERE s3.length < 104857600
             """ + (
             " LIMIT %s" % limit if limit else "")
+        cur.execute(q)
+        yield from cursor_to_bytes(cur)
+
+    def read_content_s3_not_in_sesi_nor_in_swh_huge_final(self,
+                                                          limit=None,
+                                                          cur=None):
+        """Retrieve paths to retrieve from s3.
+
+        """
+        cur = self._cursor(cur)
+        q = """SELECT path, length
+               FROM content_s3_not_in_sesi_nor_in_swh_final s3_not
+               INNER JOIN content_s3 s3 using (sha1)
+               WHERE s3.length >= 104857600
+            """ + (
+                " LIMIT %s" % limit if limit else "")
         cur.execute(q)
         yield from cursor_to_bytes(cur)
 

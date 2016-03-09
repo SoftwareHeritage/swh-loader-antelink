@@ -12,17 +12,6 @@ from swh.loader.antelink import storage, utils
 task_name = 'swh.loader.antelink.tasks.AntelinkSesiInjecterTsk'
 
 
-def gen_path_length_from_db(db_url, limit):
-    """Retrieve path, length from sesi from the storage.
-
-    It will compute ~block_size (bytes) of files (paths) to retrieve
-    and send it to the queue for workers to download and inject in swh.
-
-    """
-    store = storage.Storage(db_url)
-    yield from store.read_content_sesi_not_in_swh(limit)
-
-
 def gen_path_length_from_stdin():
     """Compute the paths to retrieve from sesi and inject in swh.
 
@@ -46,7 +35,8 @@ def gen_path_length_from_stdin():
               help='Default max number of files (default: 1000).')
 @click.option('--limit', default=None, help='Limit data to fetch.')
 @click.option('--dry-run', is_flag=True, help='Dry run.')
-def send_jobs(db_url, block_size, block_max_files, limit, dry_run):
+@click.option('--huge', is_flag=True, help='Deal with huge files.')
+def send_jobs(db_url, block_size, block_max_files, limit, dry_run, huge):
     """Send paths for worker to retrieve from sesi machine.
 
     """
@@ -64,7 +54,8 @@ def send_jobs(db_url, block_size, block_max_files, limit, dry_run):
         print('** DRY RUN **')
 
     if db_url:
-        gen_data = gen_path_length_from_db(db_url, limit)
+        store = storage.Storage(db_url)
+        gen_data = store.read_content_sesi_not_in_swh(huge, limit)
     else:
         gen_data = gen_path_length_from_stdin()
 
