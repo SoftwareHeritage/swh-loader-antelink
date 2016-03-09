@@ -114,4 +114,5 @@ def to_content(path, log=None):
 
     """
     data = compute_hash(path, with_data=True)
-    data.update({'status': 'visible'})
+    data['update'] = 'visible'
+    return data
