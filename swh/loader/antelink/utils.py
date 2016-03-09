@@ -42,20 +42,32 @@ def compute_len(f):
     return total
 
 
-def compute_data(f):
-    """Compute file-like f object's size.
+def hashfile(f, with_data=False):
+    """hash the content of a file-like object
 
-    Returns:
-        Length of the file-like f object.
+    If chunk_cb is given, call it on each data chunk after updating the hash
 
     """
+    length = compute_len(f)
+    f.seek(0)
+    hashers = {algo: hashutil._new_hash(algo, length)
+               for algo in hashutil.ALGORITHMS}
+
     data = b''
     while True:
         chunk = f.read(hashutil.HASH_BLOCK_SIZE)
         if not chunk:
             break
-        data += chunk
-    return data
+        for h in hashers.values():
+            h.update(chunk)
+        if with_data:
+            data += chunk
+
+    res = {algo: hashers[algo].digest() for algo in hashers}
+    res['length'] = length
+    if with_data:
+        res['data'] = data
+    return res
 
 
 def compute_hash(path, with_data=False):
@@ -68,22 +80,8 @@ def compute_hash(path, with_data=False):
         dictionary of sha1, sha1_git, sha256 and length.
 
     """
-    data = {}
     with gzip.open(path, 'rb') as f:
-        if with_data:
-            raw = compute_data(f)
-            data['data'] = raw
-            l = len(raw)
-        else:
-            l = compute_len(f)
-
-        f.seek(0)
-        hashes = hashutil.hashfile(f, length=l)
-        hashes.update({
-            'length': l,
-            'data': data.get('data')
-        })
-        return hashes
+        return hashfile(f, with_data=with_data)
 
 
 def split_data(data, block_size):
@@ -116,12 +114,4 @@ def to_content(path, log=None):
 
     """
     data = compute_hash(path, with_data=True)
-    size = data['length']
-    return {
-        'sha1': data['sha1'],
-        'sha1_git': data['sha1_git'],
-        'sha256': data['sha256'],
-        'length': size,
-        'status': 'visible',
-        'data': data['data']
-    }
+    data.update({'status': 'visible'})
