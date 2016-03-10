@@ -51,8 +51,9 @@ class AntelinkSesiDownloader(config.SWHConfig):
                 self.log.debug('%s -> swh' % sha1)
                 yield data
             except Exception as e:
-                self.log.error('Problem during computation of %s: %s' %
+                self.log.error('Problem during checksums computation %s - %s' %
                                (localpath, e))
+                continue
 
     def process(self, paths):
         # Then process them and store in swh

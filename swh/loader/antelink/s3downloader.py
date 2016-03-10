@@ -60,8 +60,9 @@ class AntelinkS3Downloader(config.SWHConfig):
                 bucket.download_file(s3path, localpath, Config=config)
                 yield localpath
             except Exception as e:
-                self.log.error('Problem during retrieval of %s: %s' %
+                self.log.error('Problem during s3 retrieval of %s - %s' %
                                (localpath, e))
+                continue
 
     def process(self, paths):
         s3 = boto3.resource('s3')

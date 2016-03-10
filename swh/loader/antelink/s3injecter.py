@@ -49,15 +49,16 @@ class AntelinkS3Injecter(config.SWHConfig):
                 origin_sha1 = utils.sha1_from_path(localpath)
                 sha1 = hashutil.hash_to_hex(data['sha1'])
                 if origin_sha1 != sha1:
-                    self.log.warn('(%s, %s) corrupted! %s != %s! Skipped' %
+                    self.log.warn('%s corrupted - %s != %s. Skipping!' %
                                   (localpath, origin_sha1, sha1))
                     continue
 
                 self.log.debug('%s -> swh' % sha1)
                 yield data
             except Exception as e:
-                self.log.error('Problem during computation of %s: %s' %
+                self.log.error('Problem during checksums computation %s - %s' %
                                (localpath, e))
+                continue
 
     def process(self, paths):
         # Then process them and store in swh
