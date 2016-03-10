@@ -8,6 +8,16 @@ import click
 from swh.loader.antelink import utils, storage
 
 
+def s3_files_to_download(db_url, final, limit):
+    store = storage.Storage(db_url)
+    if final:
+        files_gen = store.read_content_s3_not_in_sesi_nor_in_swh_final(limit)
+    else:
+        files_gen = store.read_content_s3_not_in_sesi_nor_in_swh(limit)
+    for data in files_gen:
+        yield data[0]
+
+
 @click.command()
 @click.option('--db-url', default='service=swh-antelink', help='Db access.')
 @click.option('--block-size', default=1000, help='Default block size to use.')
@@ -17,13 +27,8 @@ def compute_s3_files(db_url, block_size, limit, final):
     from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
 
-    store = storage.Storage(db_url)
-    if final:
-        files_gen = store.read_content_s3_not_in_sesi_nor_in_swh_final(limit)
-    else:
-        files_gen = store.read_content_s3_not_in_sesi_nor_in_swh(limit)
-
-    for paths in utils.split_data(files_gen, block_size):
+    for paths in utils.split_data(s3_files_to_download(db_url, final, limit),
+                                  block_size):
         app.tasks['swh.loader.antelink.tasks.AntelinkS3DownloaderTsk'].delay(
             list(paths))
 
