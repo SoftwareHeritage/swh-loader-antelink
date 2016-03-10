@@ -40,6 +40,10 @@ class AntelinkS3Downloader(config.SWHConfig):
         self.log = logging.getLogger(
             'swh.antelink.loader.AntelinkS3Downloader')
 
+        boto3log = self.logging.getLogger(
+            'botocore.vendored.requests.packages.urllib3.connectionpool')
+        boto3log.setLevel(logging.WARN)
+
     def download_s3_files(self, bucket, destination_path, paths):
         config = TransferConfig(
             max_concurrency=1,
