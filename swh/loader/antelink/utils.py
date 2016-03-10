@@ -43,31 +43,25 @@ def compute_len(f):
 
 
 def hashfile(f, with_data=False):
-    """hash the content of a file-like object
-
-    If chunk_cb is given, call it on each data chunk after updating the hash
+    """hash the content of a file-like object.
 
     """
     length = compute_len(f)
     f.seek(0)
-    hashers = {algo: hashutil._new_hash(algo, length)
-               for algo in hashutil.ALGORITHMS}
 
-    data = b''
-    while True:
-        chunk = f.read(hashutil.HASH_BLOCK_SIZE)
-        if not chunk:
-            break
-        for h in hashers.values():
-            h.update(chunk)
-        if with_data:
-            data += chunk
-
-    res = {algo: hashers[algo].digest() for algo in hashers}
-    res['length'] = length
     if with_data:
-        res['data'] = data
-    return res
+        localdata = []
+
+        def add_chunk(chunk, localdata=localdata):
+            localdata.append(chunk)
+
+        data = hashutil._hash_file_obj(f, length, chunk_cb=add_chunk)
+        data['data'] = b''.join(localdata)
+    else:
+        data = hashutil._hash_file_obj(f, length)
+
+    data['length'] = length
+    return data
 
 
 def compute_hash(path, with_data=False):
