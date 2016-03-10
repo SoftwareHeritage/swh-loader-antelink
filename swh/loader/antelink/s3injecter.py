@@ -53,7 +53,7 @@ class AntelinkS3Injecter(config.SWHConfig):
                                   (localpath, origin_sha1, sha1))
                     continue
 
-                self.log.info('s3 %s -> swh' % sha1)
+                self.log.debug('%s -> swh' % sha1)
                 yield data
             except Exception as e:
                 self.log.error('Problem during computation of %s: %s' %
@@ -61,7 +61,12 @@ class AntelinkS3Injecter(config.SWHConfig):
 
     def process(self, paths):
         # Then process them and store in swh
-        data = self.process_paths(
-            (self.config['s3_folder'] + p for p in paths))
-        if data:
+        data = list(self.process_paths(
+            (self.config['s3_folder'] + p for p in paths)))
+        ldata = len(data)
+        if ldata > 0:
+            self.log.info('s3 - %s paths -> %s contents [%s...] to swh' % (
+                len(paths),
+                ldata,
+                hashutil.hash_to_hex(data[0]['sha1'])))
             self.storage.content_add(data)

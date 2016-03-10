@@ -72,7 +72,9 @@ class AntelinkS3Downloader(config.SWHConfig):
                                    self.config['destination_path'],
                                    paths))
 
-        self.log.info('%s paths -> %s s3 [%s...]' % (
-            len(paths),
-            len(downloaded_paths),
-            downloaded_paths[0]))
+        l = len(downloaded_paths)
+        if l > 0:
+            self.log.info('s3 dl - %s paths -> %s [%s...]' % (
+                len(paths),
+                len(downloaded_paths),
+                downloaded_paths[0]))
