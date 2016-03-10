@@ -57,11 +57,6 @@ class AntelinkSesiDownloader(config.SWHConfig):
 
     def process(self, paths):
         # Then process them and store in swh
-        data = list(self.process_paths(paths))
-        ldata = len(data)
-        if ldata > 0:
-            self.log.info('sesi - %s paths -> %s contents [%s...] to swh' % (
-                len(paths),
-                ldata,
-                hashutil.hash_to_hex(data[0]['sha1'])))
-            self.storage.content_add(data)
+        data = self.process_paths(paths)
+        self.log.info('sesi - %s contents -> swh' % len(paths))
+        self.storage.content_add(data)

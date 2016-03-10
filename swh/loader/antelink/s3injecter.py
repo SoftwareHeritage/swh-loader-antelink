@@ -62,12 +62,7 @@ class AntelinkS3Injecter(config.SWHConfig):
 
     def process(self, paths):
         # Then process them and store in swh
-        data = list(self.process_paths(
-            (self.config['s3_folder'] + p for p in paths)))
-        ldata = len(data)
-        if ldata > 0:
-            self.log.info('s3 - %s paths -> %s contents [%s...] to swh' % (
-                len(paths),
-                ldata,
-                hashutil.hash_to_hex(data[0]['sha1'])))
-            self.storage.content_add(data)
+        data = self.process_paths(
+            (self.config['s3_folder'] + p for p in paths))
+        self.log.info('s3 - %s contents -> swh' % len(paths))
+        self.storage.content_add(data)
