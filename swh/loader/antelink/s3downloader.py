@@ -40,10 +40,7 @@ class AntelinkS3Downloader(config.SWHConfig):
         self.log = logging.getLogger(
             'swh.antelink.loader.AntelinkS3Downloader')
 
-    def process(self, paths):
-        s3 = boto3.resource('s3')
-        bucket = s3.Bucket(self.config['bucket'])
-
+    def download_s3_files(self, bucket, destination_path, paths):
         config = TransferConfig(
             max_concurrency=1,
             num_download_attempts=3,
@@ -51,17 +48,31 @@ class AntelinkS3Downloader(config.SWHConfig):
 
         for s3path in paths:
             # expects no prefix / in s3path
-            localpath = self.config['destination_path'] + s3path
+            localpath = os.path.join(destination_path, s3path)
 
             try:
                 if os.path.exists(localpath):
                     self.log.warn('%s exists! Skipping.' % localpath)
                     continue
-                else:
-                    self.log.info('%s -> %s' % (s3path, localpath))
-                    os.makedirs(os.path.dirname(localpath), exist_ok=True)
-                    bucket.download_file(s3path, localpath, Config=config)
 
+                self.log.debug('%s -> %s' % (s3path, localpath))
+                os.makedirs(os.path.dirname(localpath), exist_ok=True)
+                bucket.download_file(s3path, localpath, Config=config)
+                yield localpath
             except Exception as e:
                 self.log.error('Problem during retrieval of %s: %s' %
                                (localpath, e))
+
+    def process(self, paths):
+        s3 = boto3.resource('s3')
+        bucket = s3.Bucket(self.config['bucket'])
+
+        downloaded_paths = list(
+            self.download_s3_files(bucket,
+                                   self.config['destination_path'],
+                                   paths))
+
+        self.log.info('%s paths -> %s s3 [%s...]' % (
+            len(paths),
+            len(downloaded_paths),
+            downloaded_paths[0]))

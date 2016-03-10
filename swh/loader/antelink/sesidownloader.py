@@ -48,7 +48,7 @@ class AntelinkSesiDownloader(config.SWHConfig):
                                   (localpath, origin_sha1, sha1))
                     continue
 
-                self.log.info('%s -> swh' % sha1)
+                self.log.debug('%s -> swh' % sha1)
                 yield data
             except Exception as e:
                 self.log.error('Problem during computation of %s: %s' %
@@ -58,4 +58,9 @@ class AntelinkSesiDownloader(config.SWHConfig):
         # Then process them and store in swh
         data = self.process_paths(paths)
         if data:
-            self.storage.content_add(data)
+            ldata = list(data)
+            self.log.info('%s paths -> %s contents [%s...] to swh' % (
+                len(paths),
+                len(ldata),
+                hashutil.hash_to_hex(ldata[0]['sha1'])))
+            self.storage.content_add(ldata)
