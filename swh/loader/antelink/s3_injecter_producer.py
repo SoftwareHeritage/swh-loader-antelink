@@ -8,7 +8,7 @@ import click
 from swh.loader.antelink import utils, storage
 
 
-task_name = 'swh.loader.antelink.tasks.AntelinkSesiInjecterTsk'
+task_name = 'swh.loader.antelink.tasks.AntelinkS3InjecterTsk'
 
 
 @click.command()
