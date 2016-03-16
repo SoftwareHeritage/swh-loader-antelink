@@ -5,7 +5,7 @@
 
 from swh.loader.antelink.s3downloader import AntelinkS3Downloader
 from swh.loader.antelink.s3injecter import AntelinkS3Injecter
-from swh.loader.antelink.sesidownloader import AntelinkSesiDownloader
+from swh.loader.antelink.sesiinjecter import AntelinkSesiInjecter
 
 from swh.scheduler.task import Task
 
@@ -74,7 +74,7 @@ class AntelinkSesiInjecterTsk(Task):
     ADDITIONAL_CONFIG = {}
 
     def __init__(self):
-        self.config = AntelinkSesiDownloader.parse_config_file(
+        self.config = AntelinkSesiInjecter.parse_config_file(
             base_filename=self.CONFIG_BASE_FILENAME,
             additional_configs=[self.ADDITIONAL_CONFIG],
         )
@@ -83,9 +83,9 @@ class AntelinkSesiInjecterTsk(Task):
         """Import a bunch of paths from sesi machines.
 
         Args:
-            cf. swh.loader.antelink.sesidownloader.process docstring
+            cf. swh.loader.antelink.sesiinjecter.process docstring
 
         """
-        sesidownloader = AntelinkSesiDownloader(self.config)
-        sesidownloader.log = self.log
-        sesidownloader.process(paths)
+        sesiinjecter = AntelinkSesiInjecter(self.config)
+        sesiinjecter.log = self.log
+        sesiinjecter.process(paths)

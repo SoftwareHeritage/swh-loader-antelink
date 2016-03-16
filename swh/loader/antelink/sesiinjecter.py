@@ -13,7 +13,7 @@ from swh.storage import get_storage
 from swh.loader.antelink import utils
 
 
-class AntelinkSesiDownloader(config.SWHConfig):
+class AntelinkSesiInjecter(config.SWHConfig):
     """A bulk loader for downloading some file from s3.
 
     """
@@ -29,7 +29,7 @@ class AntelinkSesiDownloader(config.SWHConfig):
                                    config['storage_args'])
 
         self.log = logging.getLogger(
-            'swh.antelink.loader.AntelinkSesiDownloader')
+            'swh.antelink.loader.AntelinkSesiInjecter')
 
     def process_paths(self, paths):
         for localpath in paths:
