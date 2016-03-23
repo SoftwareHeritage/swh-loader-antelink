@@ -24,6 +24,14 @@ create table content_s3
     length bigint not null
 );
 
+create table content_s3_downloaded
+(
+    path text not null,
+    length bigint not null
+);
+create unique index on content_s3_downloaded(path);
+
+
 -- alter table content_s3 alter column sha1 set data type sha1;
 
 create table content_sesi
