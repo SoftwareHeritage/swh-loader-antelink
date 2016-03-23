@@ -22,8 +22,7 @@ class AntelinkS3DownloaderTsk(Task):
     def __init__(self):
         self.config = AntelinkS3Downloader.parse_config_file(
             base_filename=self.CONFIG_BASE_FILENAME,
-            additional_configs=[self.ADDITIONAL_CONFIG],
-        )
+            additional_configs=[self.ADDITIONAL_CONFIG])
 
     def run(self, s3dirpath):
         """Import a s3 directory path.
@@ -49,8 +48,7 @@ class AntelinkS3InjecterTsk(Task):
     def __init__(self):
         self.config = AntelinkS3Injecter.parse_config_file(
             base_filename=self.CONFIG_BASE_FILENAME,
-            additional_configs=[self.ADDITIONAL_CONFIG],
-        )
+            additional_configs=[self.ADDITIONAL_CONFIG])
 
     def run(self, s3dirpath):
         """Import a s3 directory path.
@@ -76,8 +74,7 @@ class AntelinkSesiInjecterTsk(Task):
     def __init__(self):
         self.config = AntelinkSesiInjecter.parse_config_file(
             base_filename=self.CONFIG_BASE_FILENAME,
-            additional_configs=[self.ADDITIONAL_CONFIG],
-        )
+            additional_configs=[self.ADDITIONAL_CONFIG])
 
     def run(self, paths):
         """Import a bunch of paths from sesi machines.
