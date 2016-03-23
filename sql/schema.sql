@@ -97,6 +97,60 @@ where not corrupted
 and length >= 104857600;
 -- 12490817718209 b = 11.360332535522502 Tib
 
+
+select sum(length)
+from content_sesi_not_in_swh notinswh
+inner join content_sesi sesi
+on notinswh.sha1=sesi.sha1
+where not sesi.corrupted;
+-- 44300076550806 b = 40.290684911093194 Tib   --> way too much. Turns out that there are ~4M duplicates in content_sesi_not_in_swh view
+
+--
+create view content_sesi_unique_and_not_corrupted
+as select distinct sha1 from content_sesi where not corrupted;
+
+create unique index content_s3_not_in_sesi_nor_in_swh (path);
+
+
+-- the ones to one download again
+-- select path from content_s3_downloaded
+
+-- the ones to filter with `content_s3_downloaded`
+-- select sha1 from content_s3_not_in_sesi_nor_in_swh
+
+with recursive sha1_from_path(p) as (
+     select sha1
+     from content_s3_not_in_sesi_nor_in_swh
+     join content_s3 s3 using (sha1)
+     where s3.path = p
+)
+select sha1 from sha1_from_path('0/0/0/0/0/2/c/0/000002c0442fe8271ad253171839d86053e6801b.gz');
+
+-- take 1
+create materialized view content_s3_not_in_sesi_nor_in_swh_final
+as select sha1
+   from content_s3_not_in_sesi_nor_in_swh
+   join content_s3 s3 using (sha1)
+   where s3.path not in (select path from content_s3_downloaded s3d where s3d.path = s3.path);
+
+explain(select sha1
+        from content_s3_not_in_sesi_nor_in_swh
+        join content_s3 s3 using (sha1)
+        where s3.path not in (select path from content_s3_downloaded s3d where s3d.path = s3.path));
+
+-- take 2
+create materialized view content_s3_not_in_sesi_nor_in_swh_final
+as select sha1
+   from content_s3_not_in_sesi_nor_in_swh
+   join content_s3 s3 using (sha1)
+   where not exists (select 1 from content_s3_downloaded s3d where s3d.path = s3.path);
+
+
+explain(select sha1
+from content_s3_not_in_sesi_nor_in_swh
+join content_s3 s3 using (sha1)
+where not exists (select 1 from content_s3_downloaded s3d where s3d.path = s3.path));
+
 -- Find the maximal length on content_sesi
 select max(length)
 from content_sesi;
