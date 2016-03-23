@@ -11,9 +11,6 @@ from swh.storage import get_storage
 from swh.loader.antelink import storage, utils
 
 
-task_name = 'swh.loader.antelink.tasks.AntelinkSesiInjecterTsk'
-
-
 def gen_path_length_from_stdin():
     """Compute the paths to retrieve from sesi and inject in swh.
 
@@ -49,12 +46,15 @@ def retrieve_unknown_sha1s(swhstorage, gendata):
 
 
 @click.command()
-@click.option('--db-url', help="""Optional db access.
+@click.option('--db-url',
+              help="""Optional db access.
                                   If not specified, wait for stdin entries.
                                """)
-@click.option('--block-size', default=104857600,
+@click.option('--block-size',
+              default=104857600,
               help='Default block size in bytes (100Mib).')
-@click.option('--block-max-files', default=1000,
+@click.option('--block-max-files',
+              default=1000,
               help='Default max number of files (default: 1000).')
 @click.option('--limit', default=None, help='Limit data to fetch.')
 @click.option('--dry-run', is_flag=True, help='Dry run.')
@@ -85,6 +85,11 @@ def send_jobs(db_url, block_size, block_max_files, limit, dry_run, huge,
         gen_data = store.read_content_sesi_not_in_swh(huge, limit)
     else:
         gen_data = gen_path_length_from_stdin()
+
+    if huge:
+        task_name = 'swh.loader.antelink.tasks.AntelinkSesiInjecterHugeTsk'
+    else:
+        task_name = 'swh.loader.antelink.tasks.AntelinkSesiInjecterTsk'
 
     swhstorage = get_storage(storage_class, storage_args.split(','))
     gen_data = retrieve_unknown_sha1s(swhstorage, gen_data)

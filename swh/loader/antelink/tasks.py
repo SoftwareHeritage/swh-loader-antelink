@@ -62,12 +62,7 @@ class AntelinkS3InjecterTsk(Task):
         s3inj.process(s3dirpath)
 
 
-class AntelinkSesiInjecterTsk(Task):
-    """Download antelink file from sesi machine.
-
-    """
-    task_queue = 'swh_antelink_sesi_downloader'
-
+class AntelinkSesiDefaultInjecterTsk(Task):
     CONFIG_BASE_FILENAME = 'antelink/sesi.ini'
     ADDITIONAL_CONFIG = {}
 
@@ -86,3 +81,17 @@ class AntelinkSesiInjecterTsk(Task):
         sesiinjecter = AntelinkSesiInjecter(self.config)
         sesiinjecter.log = self.log
         sesiinjecter.process(paths)
+
+
+class AntelinkSesiInjecterTsk(AntelinkSesiDefaultInjecterTsk):
+    """Download antelink file from sesi machine.
+
+    """
+    task_queue = 'swh_antelink_sesi_downloader'
+
+
+class AntelinkSesiInjecterHugeTsk(AntelinkSesiDefaultInjecterTsk):
+    """Download antelink file from sesi machine.
+
+    """
+    task_queue = 'swh_antelink_sesi_injecter_huge'
