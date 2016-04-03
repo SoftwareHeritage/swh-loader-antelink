@@ -5,7 +5,8 @@
 
 import click
 
-from swh.loader.antelink import utils, storage
+from swh.core.utils import grouper
+from swh.loader.antelink import storage
 
 
 def s3_files_to_download(db_url, huge, final, limit):
@@ -26,7 +27,7 @@ def compute_s3_files(db_url, block_size, limit, final, huge):
     from swh.scheduler.celery_backend.config import app
     from swh.loader.antelink import tasks  # noqa
 
-    for paths in utils.split_data(
+    for paths in grouper(
             s3_files_to_download(db_url, huge, final, limit),
             block_size):
         app.tasks['swh.loader.antelink.tasks.AntelinkS3DownloaderTsk'].delay(

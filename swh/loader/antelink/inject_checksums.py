@@ -19,6 +19,7 @@ import sys
 
 from swh.core import hashutil
 
+from swh.core.utils import grouper
 from swh.loader.antelink import utils
 from swh.loader.antelink.db import Db
 
@@ -54,7 +55,7 @@ def store_file_content(db_url, path):
     """
     db = Db.connect(db_url)
     with db.transaction() as cur:
-        for data in utils.split_data(load_file(path), BLOCK_SIZE):
+        for data in grouper(load_file(path), BLOCK_SIZE):
             db.copy_to(data, 'content_sesi',
                        ['origin_sha1', 'sha1', 'sha1_git', 'sha256', 'length',
                         'path', 'corrupted'], cur)

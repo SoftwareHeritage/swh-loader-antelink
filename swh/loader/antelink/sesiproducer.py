@@ -7,6 +7,7 @@ import click
 import sys
 
 from swh.core import hashutil
+from swh.core.utils import grouper
 from swh.storage import get_storage
 from swh.loader.antelink import storage, utils
 
@@ -36,7 +37,7 @@ def process_paths(paths):
 
 def retrieve_unknown_sha1s(swhstorage, gendata):
     # Compute blocks of 1000 sha1s
-    for paths in utils.split_data(gendata, block_size=1000):
+    for paths in grouper(gendata, n=1000):
         data = process_paths(paths)
         sha1s_tocheck = list(data.keys())
         if len(sha1s_tocheck) > 0:
@@ -48,8 +49,7 @@ def retrieve_unknown_sha1s(swhstorage, gendata):
 @click.command()
 @click.option('--db-url',
               help="""Optional db access.
-                                  If not specified, wait for stdin entries.
-                               """)
+                      If not specified, wait for stdin entries.""")
 @click.option('--block-size',
               default=104857600,
               help='Default block size in bytes (100Mib).')

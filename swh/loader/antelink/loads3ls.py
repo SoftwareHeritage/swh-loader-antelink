@@ -10,6 +10,7 @@ antelink.content_s3 table."""
 import os
 import sys
 
+from swh.core.utils import grouper
 from swh.loader.antelink import utils
 from swh.loader.antelink.db import Db
 
@@ -34,7 +35,7 @@ def load_data(path):
 
 def store_file_to_antelink_db_per_block(db, path):
     with db.transaction() as cur:
-        for data in utils.split_data(load_data(path), BLOCK_SIZE):
+        for data in grouper(load_data(path), BLOCK_SIZE):
             db.copy_to(data, 'content_s3',
                        ['sha1', 'path', 'length'], cur)
 

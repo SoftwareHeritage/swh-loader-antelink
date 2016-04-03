@@ -4,26 +4,9 @@
 # See top-level LICENSE file for more information
 
 import gzip
-import itertools
 import os
 
 from swh.core import hashutil
-
-
-def grouper(iterable, n, fillvalue=None):
-    """Collect data into fixed-length chunks or blocks.
-
-    Args:
-        iterable: an iterable
-        n: size of block
-        fillvalue: value to use for the last block
-
-    Returns:
-        fixed-length chunks of blocks as iterables
-
-    """
-    args = [iter(iterable)] * n
-    return itertools.zip_longest(*args, fillvalue=fillvalue)
 
 
 def compute_len(f):
@@ -76,19 +59,6 @@ def compute_hash(path, with_data=False):
     """
     with gzip.open(path, 'rb') as f:
         return hashfile(f, with_data=with_data)
-
-
-def split_data(data, block_size):
-    """Split the data of the generator of block with a given size.
-    The last block may be inferior of block_size.
-
-    Args:
-        data: generator of data to slice in blocks of size block-size
-        block_size: size block to use
-    """
-    splitdata = grouper(data, block_size, fillvalue=None)
-    for _data in splitdata:
-        yield (d for d in _data if d)
 
 
 def sha1_from_path(path):

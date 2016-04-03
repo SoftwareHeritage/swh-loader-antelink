@@ -6,6 +6,7 @@
 import click
 
 from swh.core import hashutil
+from swh.core.utils import grouper
 from swh.storage import get_storage
 from swh.loader.antelink import utils, storage
 
@@ -25,7 +26,7 @@ def process_paths(paths):
 
 def retrieve_unknown_sha1s(swhstorage, gen_data):
     # Compute blocks of 1000 sha1s
-    for paths in utils.split_data(gen_data, block_size=1000):
+    for paths in grouper(gen_data, n=1000):
         data = process_paths(paths)
         sha1s_tocheck = list(data.keys())
         if len(sha1s_tocheck) > 0:
