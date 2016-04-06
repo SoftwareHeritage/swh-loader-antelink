@@ -1,10 +1,9 @@
-# Copyright (C) 2015  The Software Heritage developers
+# Copyright (C) 2015-2016  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
 import click
-import sys
 
 from swh.core import hashutil
 from swh.core.utils import grouper
@@ -13,19 +12,6 @@ from swh.loader.antelink import utils, storage
 
 
 task_name = 'swh.loader.antelink.tasks.AntelinkS3InjecterTsk'
-
-
-def gen_path_length_from_stdin():
-    """Compute the paths to retrieve from sesi and inject in swh.
-
-    It will compute ~block_size (bytes) of files (paths) to retrieve
-    and send it to the queue for workers to download and inject in swh.
-
-    """
-    for line in sys.stdin:
-        line = line.rstrip()
-        data = line.split(' ')
-        yield data[0], int(data[1])
 
 
 def process_paths(paths):
@@ -85,9 +71,8 @@ def compute_s3_jobs(db_url, block_size, block_max_files, limit, dry_run,
             swhstorage,
             store.read_content_s3_not_in_sesi_nor_in_swh(huge, final, limit))
     else:
-        gen_data = retrieve_unknown_sha1s(
-            swhstorage,
-            gen_path_length_from_stdin())
+        gen_data = retrieve_unknown_sha1s(swhstorage,
+                                          utils.gen_path_length_from_stdin())
 
     nb_total_blocks = 0
     for paths, size in utils.split_data_per_size(gen_data, block_size,

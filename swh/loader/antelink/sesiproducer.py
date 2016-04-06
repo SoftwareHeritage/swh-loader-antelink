@@ -1,28 +1,14 @@
-# Copyright (C) 2015  The Software Heritage developers
+# Copyright (C) 2015-2016  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
 import click
-import sys
 
 from swh.core import hashutil
 from swh.core.utils import grouper
 from swh.storage import get_storage
 from swh.loader.antelink import storage, utils
-
-
-def gen_path_length_from_stdin():
-    """Compute the paths to retrieve from sesi and inject in swh.
-
-    It will compute ~block_size (bytes) of files (paths) to retrieve
-    and send it to the queue for workers to download and inject in swh.
-
-    """
-    for line in sys.stdin:
-        line = line.rstrip()
-        data = line.split(' ')
-        yield data[0], int(data[1])
 
 
 def process_paths(paths):
@@ -84,7 +70,7 @@ def send_jobs(db_url, block_size, block_max_files, limit, dry_run, huge,
         store = storage.Storage(db_url)
         gen_data = store.read_content_sesi_not_in_swh(huge, limit)
     else:
-        gen_data = gen_path_length_from_stdin()
+        gen_data = utils.gen_path_length_from_stdin()
 
     if huge:
         task_name = 'swh.loader.antelink.tasks.AntelinkSesiInjecterHugeTsk'

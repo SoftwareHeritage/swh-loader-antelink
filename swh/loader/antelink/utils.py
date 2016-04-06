@@ -1,10 +1,11 @@
-# Copyright (C) 2015  The Software Heritage developers
+# Copyright (C) 2015-2016  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU Affero General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
 import gzip
 import os
+import sys
 
 from swh.core import hashutil
 
@@ -107,3 +108,19 @@ def split_data_per_size(gen_data, block_size, block_max_files):
     # if remaining paths
     if accu_size > 0 or paths:
         yield paths, accu_size
+
+
+def gen_path_length_from_stdin():
+    """Compute the paths to retrieve from sesi and inject in swh.
+
+    It will compute ~block_size (bytes) of files (paths) to retrieve
+    and send it to the queue for workers to download and inject in swh.
+
+    """
+    for line in sys.stdin:
+        line = line.rstrip()
+        data = line.split(' ')
+        if len(data) > 1:
+            yield data[0], int(data[1])
+        else:
+            yield data[0]
