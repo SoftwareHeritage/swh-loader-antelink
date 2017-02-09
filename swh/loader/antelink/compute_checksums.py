@@ -107,6 +107,7 @@ def main():
                         data['path'],
                         data['corrupted']]))
 
+
 if __name__ == '__main__':
     process_log_file = sys.argv[1]
 
