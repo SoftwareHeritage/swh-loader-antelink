@@ -19,7 +19,7 @@ class AntelinkS3Injecter(config.SWHConfig):
     """
     DEFAULT_CONFIG = {
         'storage_class': ('str', 'remote_storage'),
-        'storage_args': ('list[str]', ['http://localhost:5000/']),
+        'storage_args': ('list[str]', ['http://localhost:5002/']),
         's3_folder': ('string', '/srv/storage/space/antelink/s3'),
     }
 
