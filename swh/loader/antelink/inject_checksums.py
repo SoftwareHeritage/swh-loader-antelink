@@ -1,4 +1,4 @@
-# Copyright (C) 2015  The Software Heritage developers
+# Copyright (C) 2015-2017  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU Affero General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -17,7 +17,7 @@ The data are stored in table content_sesi_all.
 import os
 import sys
 
-from swh.core import hashutil
+from swh.model import hashutil
 
 from swh.core.utils import grouper
 from swh.loader.antelink import utils
@@ -37,10 +37,10 @@ def load_file(path):
             # huge file or pb during hash computation)
             origin_sha1 = utils.sha1_from_path(path)
             if data[0]:
-                yield {'origin_sha1': hashutil.hex_to_hash(origin_sha1),
-                       'sha1': hashutil.hex_to_hash(data[0]),
-                       'sha1_git': hashutil.hex_to_hash(data[1]),
-                       'sha256': hashutil.hex_to_hash(data[2]),
+                yield {'origin_sha1': hashutil.hash_to_bytes(origin_sha1),
+                       'sha1': hashutil.hash_to_bytes(data[0]),
+                       'sha1_git': hashutil.hash_to_bytes(data[1]),
+                       'sha256': hashutil.hash_to_bytes(data[2]),
                        'length': data[3],
                        'path': path,
                        'corrupted': data[5]}

@@ -1,12 +1,12 @@
-# Copyright (C) 2015-2016  The Software Heritage developers
+# Copyright (C) 2015-2017  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
 import click
 
-from swh.core import hashutil
 from swh.core.utils import grouper
+from swh.model import hashutil
 from swh.storage import get_storage
 from swh.loader.antelink import utils, storage
 
@@ -19,7 +19,7 @@ def process_paths(paths):
     """
     m = {}
     for localpath, size in paths:
-        sha1 = hashutil.hex_to_hash(utils.sha1_from_path(localpath))
+        sha1 = hashutil.hash_to_bytes(utils.sha1_from_path(localpath))
         m[sha1] = [localpath, size]
     return m
 

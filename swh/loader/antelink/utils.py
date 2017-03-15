@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2016  The Software Heritage developers
+# Copyright (C) 2015-2017  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU Affero General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -7,7 +7,7 @@ import gzip
 import os
 import sys
 
-from swh.core import hashutil
+from swh.model import hashutil
 
 
 def compute_len(f):
@@ -39,10 +39,10 @@ def hashfile(f, with_data=False):
         def add_chunk(chunk, localdata=localdata):
             localdata.append(chunk)
 
-        data = hashutil._hash_file_obj(f, length, chunk_cb=add_chunk)
+        data = hashutil.hash_file(f, length, chunk_cb=add_chunk)
         data['data'] = b''.join(localdata)
     else:
-        data = hashutil._hash_file_obj(f, length)
+        data = hashutil.hash_file(f, length)
 
     data['length'] = length
     return data
